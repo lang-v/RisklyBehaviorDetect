@@ -7,12 +7,17 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
 import org.springframework.stereotype.Service
+import java.util.*
 
 @Service
 class LogServiceImpl : LogService {
 
     @Autowired
     lateinit var logMapper: LogMapper
+    override suspend fun insert(log: EventLog): Int {
+        logMapper.saveAndFlush(log)
+        return 1
+    }
 
     override suspend fun queryByType(type: EventLog.Type): List<EventLog> {
         val eventLog = EventLog()

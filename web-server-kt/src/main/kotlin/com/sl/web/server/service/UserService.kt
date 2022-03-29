@@ -5,6 +5,8 @@ import com.sl.web.server.entity.User
 
 interface UserService {
 
+    suspend fun query(userId: Set<String>):List<User>
+
     suspend fun login(userId: String, password: String, timestamp: Long): String
 
     suspend fun register(user: User): Int

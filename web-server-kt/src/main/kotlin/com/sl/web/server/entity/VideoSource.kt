@@ -1,12 +1,14 @@
 package com.sl.web.server.entity
 
+import org.hibernate.mapping.Join
 import javax.persistence.*
 
 @Entity(name="projects")
-class InputSource {
+class VideoSource {
 
     @Id
-    @Column(name ="resource_id")
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @Column(name ="resource_id", columnDefinition = "Long",nullable = false)
     var resourceId = 0
 
     @Column(name="input_url")
@@ -14,7 +16,7 @@ class InputSource {
 
     @Enumerated(EnumType.STRING)
     @Column(name="type")
-    var type = Type.Camera
+    var type = Type.LocalFile
 
     @Column(name = "create_time",columnDefinition = "DateTime")
     var createTime = ""
@@ -25,7 +27,12 @@ class InputSource {
     @JoinTable(name = "projects_members",joinColumns = [JoinColumn(name="resource_id")])
     @ElementCollection(fetch = FetchType.LAZY)
     @Column(name="members")
-    lateinit var members:Map<Int,String>
+    var members:Set<String> = setOf()
+
+    @JoinTable(name = "project_records",joinColumns = [JoinColumn(name = "resource_id")])
+    @ElementCollection(fetch = FetchType.LAZY)
+    @Column(name = "record")
+    var record:Map<String,String> = mapOf()
 
     enum class Type{LocalFile,Camera}
 }

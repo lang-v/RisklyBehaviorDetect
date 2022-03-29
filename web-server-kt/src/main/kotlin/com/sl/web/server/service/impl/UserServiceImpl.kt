@@ -20,6 +20,10 @@ class UserServiceImpl : UserService {
     @Autowired
     lateinit var userMapper: UserMapper
 
+    override suspend fun query(userId: Set<String>): List<User> {
+        return userMapper.findAllById(userId)
+    }
+
     override suspend fun login(userId: String, password: String, timestamp: Long): String {
         val temp = Aes.decrypt(password, timestamp.toString())
         val realPassword = Aes.encrypt(temp,Aes.publicKey)

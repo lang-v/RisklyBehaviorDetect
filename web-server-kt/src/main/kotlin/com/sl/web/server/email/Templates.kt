@@ -35,7 +35,7 @@ fun <T> T.generateResetLinkEmail(reset_url: String) =
     """.trimIndent()
 
 // 生成紧急通知
-fun<T> T.generateAlarmEmail(index_url:String)=
+fun<T> T.generateAlarmEmail(index_url:String,time:String)=
     """
         <head><base target="_blank" /><style type="text/css">::-webkit-scrollbar{ display: none; }</style><style id="cloudAttachStyle" type="text/css">#divNeteaseBigAttach, #divNeteaseBigAttach_bak{display:none;}</style><style id="blockquoteStyle" type="text/css">blockquote{display:none;}</style><style type="text/css">
             body{font-size:14px;font-family:arial,verdana,sans-serif;line-height:1.666;padding:0;margin:0;overflow:auto;white-space:normal;word-wrap:break-word;min-height:100px}
@@ -46,7 +46,7 @@ fun<T> T.generateAlarmEmail(index_url:String)=
             header,footer,section,aside,article,nav,hgroup,figure,figcaption{display:block}
             blockquote{margin-right:0px}
         </style></head><body tabindex="0" role="listitem"><table width="700" border="0" align="center" cellspacing="0" style="width:700px;"><tbody><tr><td><div style="width:700px;margin:0 auto;border-bottom:1px solid #ccc;margin-bottom:30px;"><table border="0" cellpadding="0" cellspacing="0" width="700" height="39" style="font:12px Tahoma, Arial, 宋体;"><tbody><tr><td width="210"></td></tr></tbody></table></div><div style="width:680px;padding:0 10px;margin:0 auto;"><div style="line-height:1.5;font-size:14px;margin-bottom:25px;color:#4d4d4d;"><strong style="display:block;margin-bottom:15px;">尊敬的用户：<span style="color:#f60;font-size: 16px;"></span>您好！</strong><strong style="display:block;margin-bottom:15px;">
-                            高空危险行为预警系统检测到<span style="color: red">紧急情况</span>，请立马处理：
+                            高空危险行为预警系统在 ${time} 检测到<span style="color: red">紧急情况</span>，请立马处理：
                         </strong><a href="$index_url"><button style="background-color: red;color: white;border: red;width: 150px;height: 35px;font-size: 18px;border-radius: 5px">查看详情</button></a></div><div style="margin-bottom:30px;"><small style="display:block;margin-bottom:20px;font-size:12px;"><p style="color:#747474;">
                                 注意：此邮件仅当一级紧急情况时使用，望重视！！！
                                 <br>

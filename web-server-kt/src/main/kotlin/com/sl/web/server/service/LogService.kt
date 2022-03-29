@@ -8,6 +8,8 @@ import com.sl.web.server.entity.EventLog.Type
  */
 interface LogService {
 
+    suspend fun insert(log: EventLog):Int
+
     suspend fun queryByType(type:Type): List<EventLog>
 
     suspend fun queryAll(): List<EventLog>
