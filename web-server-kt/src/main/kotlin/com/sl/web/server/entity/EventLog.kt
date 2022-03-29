@@ -4,7 +4,7 @@ import javax.persistence.*
 
 @Entity
 @Table(name="log_info")
-class Log {
+class EventLog {
     @Id
     @Column(name = "log_id",nullable = false)
     var logId = -1

@@ -14,7 +14,13 @@ class ValidationCode {
     @Column(name = "user_id")
     var userId = ""
 
+    @Column(name = "email")
+    var email = ""
+
     @Column(name = "last_apply_time",columnDefinition = "datetime")
     var lastApplyTime = ""
+
+    @Column(name = "code",length = 6)
+    var code = ""
 
 }

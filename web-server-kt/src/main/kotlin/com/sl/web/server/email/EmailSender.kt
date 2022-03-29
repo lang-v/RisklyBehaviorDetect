@@ -63,7 +63,7 @@ class EmailSender {
     }
 
     fun setReceiver(toEmail:String):EmailSender{
-        mimeMessage.setRecipient(Message.RecipientType.TO,InternetAddress(toEmail))
+        mimeMessage.setRecipient(Message.RecipientType.TO, InternetAddress(toEmail))
         return this
     }
 

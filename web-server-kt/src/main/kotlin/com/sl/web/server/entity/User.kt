@@ -14,9 +14,6 @@ class User{
     @Column(name = "user_id",updatable = false)
     var userId: String = ""
 
-    @Column(name = "id")
-    var id:Int = 0
-
     @Column(name = "email")
     var email = ""
 

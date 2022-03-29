@@ -9,15 +9,16 @@ interface UserService {
 
     suspend fun register(user: User): Int
 
-    suspend fun updateUsername(token: String, newUsername: String): User
+    suspend fun updateUsername(userId: String, newUsername: String): Int
 
-    suspend fun update(userId: String, password: String, newPassword: String): Int
+    suspend fun update(userId: String, newPassword: String): Int
 
-    //    慎用，无须原来密码直接修改现有密码。需配合邮件重置链接使用
-    suspend fun reset(userId: String, newPassword: String): User
+    suspend fun update(userId: String, password:String, newPassword: String): Int
 
     fun checkId(userId: String): Int
 
-    fun checkEmail(email: String): Int
+    suspend fun checkEmail(email: String): Int
+
+    suspend fun checkIdAndEmail(userId: String,email: String): Boolean
 
 }

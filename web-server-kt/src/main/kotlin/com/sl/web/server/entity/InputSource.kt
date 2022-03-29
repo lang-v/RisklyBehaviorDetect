@@ -2,7 +2,6 @@ package com.sl.web.server.entity
 
 import javax.persistence.*
 
-//@Table(name = "projects",schema = "RECORDS")
 @Entity(name="projects")
 class InputSource {
 
@@ -21,12 +20,12 @@ class InputSource {
     var createTime = ""
 
     @Column(name="user_id")
-    var owner = ""
+    var userId = ""
 
     @JoinTable(name = "projects_members",joinColumns = [JoinColumn(name="resource_id")])
     @ElementCollection(fetch = FetchType.LAZY)
     @Column(name="members")
     lateinit var members:Map<Int,String>
 
-    enum class Type{LocalFile,OnlineResource,Camera}
+    enum class Type{LocalFile,Camera}
 }

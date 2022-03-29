@@ -1,7 +1,7 @@
 package com.sl.web.server.controller
 
 import com.sl.web.server.response.wrapper
-import com.sl.web.server.entity.Log.Type
+import com.sl.web.server.entity.EventLog.Type
 import com.sl.web.server.service.LogService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
