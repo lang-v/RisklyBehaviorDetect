@@ -84,7 +84,7 @@ class VideoSourceController : BasicController() {
                 return@withContext "".wrapper(101, "token失效")
             val userId = TokenManager.decodeToken(vsDto.token)!!.first
             val videoSource = videoSourceService.query(vsDto.resourceId) ?: return@withContext "".wrapper(302, "查询失败")
-            if (userId != videoSource.userId && !videoSource.members.map { it.user_id }.contains(userId))
+            if (userId != videoSource.user.userId && !videoSource.members.map { it.user_id }.contains(userId))
                 return@withContext "".wrapper(303, "无权限访问资源")
             val records = videoSource.records
             records.wrapper(200, "查询成功")
@@ -121,7 +121,7 @@ class VideoSourceController : BasicController() {
             val userList = userService.query(members.map { it.user_id }.toSet())
 
             val emailList = ArrayList<String>()
-            emailList.add(videoSource.userId)
+            emailList.add(videoSource.user.userId)
             emailList.addAll(userList.map { it.email })
 
             val time = Date(vsDto.notifyTime).time
@@ -151,7 +151,7 @@ class VideoSourceController : BasicController() {
             // 写入日志
             val log = EventLog()
             log.createTime = time
-            log.userId = videoSource.userId
+            log.userId = videoSource.user.userId
             log.type = EventLog.Type.Alarm
             log.content = "action codes:${vsDto.actionCodes} - level top:$maxLevel"
             count = logService.insert(log)

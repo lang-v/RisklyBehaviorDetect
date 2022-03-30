@@ -20,7 +20,7 @@ class VideoSourceServiceImpl : VideoSourceService {
     override suspend fun insert(userId: String, source: String, projectName:String): VideoSource {
         val videoSource = VideoSource()
         videoSource.name = projectName
-        videoSource.userId = userId
+        videoSource.user.userId = userId
         videoSource.createTime = Date().time
         videoSource.members = setOf()
         videoSource.type = if (source == "0") VideoSource.Type.Camera else VideoSource.Type.LocalFile
@@ -30,7 +30,7 @@ class VideoSourceServiceImpl : VideoSourceService {
 
     override suspend fun addMember(resourceId: Int, owner: String, userIds: Set<String>): Int {
         val videoSource = sourceMapper.findByIdOrNull(resourceId) ?: return 0
-        if (videoSource.userId != owner) return 0
+        if (videoSource.user.userId != owner) return 0
         if (videoSource.members.any { userIds.contains(it.user_id) })
         // 这种就是出现了重复成员
             return -1
@@ -49,7 +49,7 @@ class VideoSourceServiceImpl : VideoSourceService {
 
     override suspend fun removeMember(resourceId: Int, owner: String, userIds: Set<String>): Int {
         val videoSource = sourceMapper.findByIdOrNull(resourceId) ?: return 0
-        if (videoSource.userId != owner) return 0
+        if (videoSource.user.userId != owner) return 0
         if (!videoSource.members.map { it.user_id }.containsAll(userIds.toList()))
         // 出现了不存在的成员
             return -1
@@ -71,7 +71,7 @@ class VideoSourceServiceImpl : VideoSourceService {
 
     override suspend fun queryByUserId(userId: String): List<VideoSource> {
         val source = VideoSource()
-        source.userId = userId
+        source.user.userId = userId
         val example = Example.of(source, ExampleMatcher.matchingAny())
         return sourceMapper.findAll(example)
     }

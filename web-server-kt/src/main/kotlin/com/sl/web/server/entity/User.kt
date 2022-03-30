@@ -25,4 +25,6 @@ class User{
     @Column(name = "token")
     var token = ""
 
+    @OneToMany(targetEntity = VideoSource::class,cascade = [CascadeType.ALL],fetch = FetchType.EAGER)
+    lateinit var projects:Set<VideoSource>
 }

@@ -25,12 +25,14 @@ class VideoSource {
     @Column(name = "create_time")
     var createTime = 0L
 
-    @Column(name = "user_id")
-    var userId = ""
+    //    @Column(name = "user_id")
+    @ManyToOne(cascade = [CascadeType.ALL])
+    @JoinColumn(name = "project_id")
+    lateinit var user: User
 
-//    @JsonIgnore
+    //    @JsonIgnore
     //    @JoinTable(name = "project_members",joinColumns = [JoinColumn(name="resource_id")])
-    @OneToMany(targetEntity = Member::class, cascade = [CascadeType.ALL],fetch = FetchType.EAGER)
+    @OneToMany(targetEntity = Member::class, cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
 //    @JoinTable(
 //        name = "project_member",
 //        joinColumns = [JoinColumn(name = "project_resource_id", referencedColumnName = "ID")],
@@ -41,7 +43,7 @@ class VideoSource {
 //    @Column(name = "member")
     var members: Set<Member> = setOf()
 
-//    @JsonIgnore
+    //    @JsonIgnore
 //    @JoinTable(
 //        name = "project_record",
 //        joinColumns = [JoinColumn(name = "project_resource_id", referencedColumnName = "ID")],
@@ -49,7 +51,7 @@ class VideoSource {
 //    )
 //    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
 //    @JoinColumn(name = "records")
-    @OneToMany(targetEntity = Record::class, cascade = [CascadeType.ALL],fetch = FetchType.EAGER)
+    @OneToMany(targetEntity = Record::class, cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     var records: Set<Record> = setOf()
 
     enum class Type { LocalFile, Camera }
