@@ -13,7 +13,8 @@ class Record {
 
     @JsonIgnore
     @ManyToOne(cascade = [CascadeType.ALL])
-    @JoinColumn(name = "source")
+    @JoinColumn(name = "resource_id")
+//    @JoinColumn(name = "project1",foreignKey = ForeignKey(name = "test1"))
     lateinit var source: VideoSource
 
 

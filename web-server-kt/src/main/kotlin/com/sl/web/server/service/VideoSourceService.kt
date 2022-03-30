@@ -4,13 +4,15 @@ import com.sl.web.server.entity.VideoSource
 
 interface VideoSourceService {
 
-    fun insert(userId: String, source: String): VideoSource
+    suspend fun insert(userId: String, source: String, projectName:String): VideoSource
 
-    fun addMember(resourceId: Int, owner: String, userIds: Set<String>): Int
+    suspend fun addMember(resourceId: Int, owner: String, userIds: Set<String>): Int
 
-    fun removeMember(resourceId: Int, owner: String, userIds: Set<String>): Int
+    suspend fun removeMember(resourceId: Int, owner: String, userIds: Set<String>): Int
 
-    fun query(resourceId: Int): VideoSource?
+    suspend fun query(resourceId: Int): VideoSource?
 
-//    fun query()
+    suspend fun queryByUserId(userId:String):List<VideoSource>
+
+    suspend fun update(source: VideoSource):Int
 }

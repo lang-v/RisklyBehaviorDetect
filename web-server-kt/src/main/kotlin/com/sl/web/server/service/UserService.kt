@@ -7,6 +7,8 @@ interface UserService {
 
     suspend fun query(userId: Set<String>):List<User>
 
+    suspend fun queryAll():List<User>
+
     suspend fun login(userId: String, password: String, timestamp: Long): User?
 
     suspend fun register(user: User): Int

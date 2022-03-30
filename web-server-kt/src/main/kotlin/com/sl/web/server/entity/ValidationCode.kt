@@ -10,7 +10,7 @@ class ValidationCode {
 
     @Id
     @Column(name = "record_id")
-    var recordId = -1
+    var recordId = 0
 
     @Column(name = "user_id")
     var userId = ""

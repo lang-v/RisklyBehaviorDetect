@@ -9,11 +9,14 @@ class VideoSource {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "resource_id", columnDefinition = "Long", nullable = false)
+    @Column(name = "id", columnDefinition = "Int", nullable = false)
     var resourceId = 0
 
     @Column(name = "input_url")
     var url = ""
+
+    @Column(name = "project_name")
+    var name = ""
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
@@ -25,9 +28,9 @@ class VideoSource {
     @Column(name = "user_id")
     var userId = ""
 
-    @JsonIgnore
+//    @JsonIgnore
     //    @JoinTable(name = "project_members",joinColumns = [JoinColumn(name="resource_id")])
-    @OneToMany(cascade = [CascadeType.ALL])
+    @OneToMany(targetEntity = Member::class, cascade = [CascadeType.ALL],fetch = FetchType.EAGER)
 //    @JoinTable(
 //        name = "project_member",
 //        joinColumns = [JoinColumn(name = "project_resource_id", referencedColumnName = "ID")],
@@ -38,7 +41,7 @@ class VideoSource {
 //    @Column(name = "member")
     var members: Set<Member> = setOf()
 
-    @JsonIgnore
+//    @JsonIgnore
 //    @JoinTable(
 //        name = "project_record",
 //        joinColumns = [JoinColumn(name = "project_resource_id", referencedColumnName = "ID")],
@@ -46,7 +49,7 @@ class VideoSource {
 //    )
 //    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
 //    @JoinColumn(name = "records")
-    @OneToMany(cascade = [CascadeType.ALL])
+    @OneToMany(targetEntity = Record::class, cascade = [CascadeType.ALL],fetch = FetchType.EAGER)
     var records: Set<Record> = setOf()
 
     enum class Type { LocalFile, Camera }

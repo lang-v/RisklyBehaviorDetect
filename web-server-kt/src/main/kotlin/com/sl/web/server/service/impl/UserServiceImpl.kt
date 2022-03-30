@@ -24,6 +24,10 @@ class UserServiceImpl : UserService {
         return userMapper.findAllById(userId)
     }
 
+    override suspend fun queryAll(): List<User> {
+        return userMapper.findAll()
+    }
+
     override suspend fun login(userId: String, password: String, timestamp: Long): User? {
         val user = userMapper.findById(userId).let {
             if (it.isPresent) it.get() else return null

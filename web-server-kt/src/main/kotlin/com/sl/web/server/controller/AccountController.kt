@@ -46,7 +46,7 @@ class AccountController : BasicController() {
         @RequestParam(name = "user_id", required = true) user_id: String,
         @RequestParam(name = "email", required = true) email: String,
         @RequestParam(name = "operation", required = true) operation: String,
-        @RequestParam(name = "reset_url") resetUrl: String
+        @RequestParam(name = "reset_url", required = false) resetUrl: String
     ): Wrapper<String> {
         return withContext(coroutineContext) {
             var bean = validationCodeService.query(user_id)
@@ -113,6 +113,22 @@ class AccountController : BasicController() {
                 }
             }
             "".wrapper(100, "未知错误")
+        }
+    }
+
+    @PostMapping("/query_all")
+    suspend fun queryAll(
+        @RequestBody(required = true) accountDto: AccountDto
+    ): Wrapper<Any> {
+        return withContext(coroutineContext) {
+            if (!TokenManager.validationToken(accountDto.token, userService::checkId)) {
+                return@withContext "".wrapper(201, "验证失败")
+            }
+            val user_id =
+                TokenManager.decodeToken(accountDto.token)?.first ?: return@withContext "".wrapper(202, "验证失败")
+            val userList =
+                userService.queryAll().filter { it.userId != user_id }.map { it.userId to it.username }.toList()
+            return@withContext userList.wrapper(200, "查询成功")
         }
     }
 

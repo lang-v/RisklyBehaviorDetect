@@ -12,7 +12,7 @@ class Member {
 
     @JsonIgnore
     @ManyToOne(cascade = [CascadeType.ALL])
-    @JoinColumn(name = "source")
+    @JoinColumn(name = "resource_id")
     lateinit var source:VideoSource
 
     @Column(name = "user_id")

@@ -1,8 +1,10 @@
 package com.sl.web.server.controller
 
+import com.sl.web.server.dto.VideoSourceDto
 import com.sl.web.server.email.EmailSender
 import com.sl.web.server.email.generateAlarmEmail
 import com.sl.web.server.entity.EventLog
+import com.sl.web.server.entity.Record
 import com.sl.web.server.response.Wrapper
 import com.sl.web.server.response.wrapper
 import com.sl.web.server.security.TokenManager
@@ -33,87 +35,97 @@ class VideoSourceController : BasicController() {
 
     @PostMapping("/create")
     suspend fun createVideoSource(
-        @RequestBody(required = true) token: String,
-        @RequestBody(required = true) url: String
+        @RequestBody(required = true) vsDto: VideoSourceDto
     ): Wrapper<String> {
         return withContext(coroutineContext) {
-            if (!TokenManager.validationToken(token, userService::checkId))
+            if (!TokenManager.validationToken(vsDto.token, userService::checkId))
                 return@withContext "".wrapper(101, "token失效")
-            val userId = TokenManager.decodeToken(token)!!.first
-            videoSourceService.insert(userId, url)
+            val userId = TokenManager.decodeToken(vsDto.token)!!.first
+            videoSourceService.insert(userId, vsDto.url, vsDto.projectName)
             "".wrapper(200, "创建成功")
+        }
+    }
+
+    @PostMapping("/query_projects")
+    suspend fun queryProjects(
+        @RequestBody(required = true) dto: VideoSourceDto
+    ): Wrapper<Any> {
+        return withContext(coroutineContext) {
+            if (!TokenManager.validationToken(dto.token, userService::checkId))
+                return@withContext "".wrapper(101, "token失效")
+            val userId = TokenManager.decodeToken(dto.token)!!.first
+            videoSourceService.queryByUserId(userId)
+                .wrapper(200, "查询成功")
         }
     }
 
     @PostMapping("/add_member")
     suspend fun addMembers(
-        @RequestBody(required = true) token: String,
-        @RequestBody(required = true) resourceId: Int,
-        @RequestBody(required = true) members: Set<String>
+        @RequestBody(required = true) vsDto: VideoSourceDto
     ): Wrapper<String> {
         return withContext(coroutineContext) {
-            if (!TokenManager.validationToken(token, userService::checkId))
+            if (!TokenManager.validationToken(vsDto.token, userService::checkId))
                 return@withContext "".wrapper(101, "token失效")
-            val userId = TokenManager.decodeToken(token)!!.first
-            videoSourceService.addMember(resourceId, userId, members)
-            "".wrapper(200, "创建成功")
+            val userId = TokenManager.decodeToken(vsDto.token)!!.first
+            val count = videoSourceService.addMember(vsDto.resourceId, userId, vsDto.members)
+            if (count > 0 && count == vsDto.members.size)
+                "".wrapper(200, "添加成功")
+            else
+                "".wrapper(201, "添加失败")
         }
     }
 
     @PostMapping("/query_record")
     suspend fun queryRecord(
-        @RequestBody(required = true) token: String,
-        @RequestBody(required = true) resourceId: Int,
+        @RequestBody(required = true) vsDto: VideoSourceDto
     ): Wrapper<Any> {
         return withContext(coroutineContext) {
-            if (!TokenManager.validationToken(token, userService::checkId))
+            if (!TokenManager.validationToken(vsDto.token, userService::checkId))
                 return@withContext "".wrapper(101, "token失效")
-            val userId = TokenManager.decodeToken(token)!!.first
-            val videoSource = videoSourceService.query(resourceId)?:return@withContext "".wrapper(302,"查询失败")
+            val userId = TokenManager.decodeToken(vsDto.token)!!.first
+            val videoSource = videoSourceService.query(vsDto.resourceId) ?: return@withContext "".wrapper(302, "查询失败")
             if (userId != videoSource.userId && !videoSource.members.map { it.user_id }.contains(userId))
                 return@withContext "".wrapper(303, "无权限访问资源")
             val records = videoSource.records
-            records.wrapper(200,"查询成功")
+            records.wrapper(200, "查询成功")
         }
     }
 
     @PostMapping("/remove_member")
     suspend fun removeMembers(
-        @RequestBody(required = true) token: String,
-        @RequestBody(required = true) resourceId: Int,
-        @RequestBody(required = true) members: Set<String>
+        @RequestBody(required = true) vsDto: VideoSourceDto
     ): Wrapper<String> {
         return withContext(coroutineContext) {
-            if (!TokenManager.validationToken(token, userService::checkId))
+            if (!TokenManager.validationToken(vsDto.token, userService::checkId))
                 return@withContext "".wrapper(101, "token失效")
-            val userId = TokenManager.decodeToken(token)!!.first
-            videoSourceService.removeMember(resourceId, userId, members)
-            "".wrapper(200, "创建成功")
+            val userId = TokenManager.decodeToken(vsDto.token)!!.first
+            val count = videoSourceService.removeMember(vsDto.resourceId, userId, vsDto.members)
+            if (count == vsDto.members.size)
+                "".wrapper(200, "删除成功")
+            else
+                "".wrapper(201, "操作失败")
         }
     }
 
 
     @PostMapping("/report")
     suspend fun actionReport(
-        @RequestBody(required = true) resourceId: Int,
-        @RequestBody(required = true) token: String,
-        @RequestBody(required = true) notifyTime: Long,
-        @RequestBody(required = true) actionCodes: Set<Int>
+        @RequestBody(required = true) vsDto: VideoSourceDto
     ): Wrapper<String> {
         return withContext(coroutineContext) {
-            if (!TokenManager.validationToken(token, userService::checkId))
+            if (!TokenManager.validationToken(vsDto.token, userService::checkId))
                 return@withContext "".wrapper(101, "token失效")
-            val videoSource = videoSourceService.query(resourceId)
-
-            val members = videoSource!!.members
+            val videoSource = videoSourceService.query(vsDto.resourceId)
+                ?: return@withContext "".wrapper(201, "资源错误")
+            val members = videoSource.members
             val userList = userService.query(members.map { it.user_id }.toSet())
 
             val emailList = ArrayList<String>()
             emailList.add(videoSource.userId)
             emailList.addAll(userList.map { it.email })
 
-            val time = Date(notifyTime).time
-            val maxLevel = getLevel(actionCodes).maxOf { it }
+            val time = Date(vsDto.notifyTime).time
+            val maxLevel = getLevel(vsDto.actionCodes).maxOf { it }
 
             when (maxLevel) {
                 2 -> {
@@ -123,18 +135,30 @@ class VideoSourceController : BasicController() {
                         .setTitle("检测到危险行为")
                         .setContent(generateAlarmEmail("http://127.0.0.1:8080/index", Date(time).toDateTime()))
                         .build()
-//                        .send()
+                        .send()
                 }
             }
+
+            // 写入项目记录
+            val record = Record()
+            record.action_code = maxLevel
+            record.time = vsDto.notifyTime
+            videoSource.records = videoSource.records.plus(record)
+            var count =  videoSourceService.update(videoSource)
+            if (count != 1)
+                return@withContext "".wrapper(201, "记录失败")
+
             // 写入日志
             val log = EventLog()
             log.createTime = time
             log.userId = videoSource.userId
             log.type = EventLog.Type.Alarm
-            log.content = "action codes:$actionCodes - level top:$maxLevel"
-            logService.insert(log)
-
-            "".wrapper(200, "上报成功")
+            log.content = "action codes:${vsDto.actionCodes} - level top:$maxLevel"
+            count = logService.insert(log)
+            if (count == 1)
+                "".wrapper(200, "上报成功")
+            else
+                "".wrapper(201, "上报失败")
         }
 
     }
@@ -146,7 +170,7 @@ class VideoSourceController : BasicController() {
     private val levelTwo = arrayOf(6/*跳跃*/)
     private val levelThree = arrayOf(51/*射击*/, 57/*扔东西*/, 63 /*打架*/)
 
-    private fun getLevel(actionCodes: Set<Int>): Array<Int> {
+    private fun getLevel(actionCodes: List<Int>): Array<Int> {
         val levels = Array<Int>(actionCodes.size) { 0 }
         actionCodes.forEachIndexed { index, i ->
             if (levelThree.contains(i))
