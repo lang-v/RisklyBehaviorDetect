@@ -3,6 +3,7 @@ package com.sl.web.server.service.impl
 import com.sl.web.server.entity.ValidationCode
 import com.sl.web.server.mapper.ValidationCodeMapper
 import com.sl.web.server.service.ValidationCodeService
+import com.sl.web.server.utils.toDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
@@ -26,7 +27,7 @@ class ValidationCodeServiceImpl:ValidationCodeService {
     }
 
     override fun saveOrUpdate(bean:ValidationCode): Int {
-        bean.lastApplyTime = Date().toString()
+//        bean.lastApplyTime = Date().time + 60 * 5 * 1000
         validationCodeMapper.saveAndFlush(bean)
         return 1
     }

@@ -1,6 +1,7 @@
 package com.sl.web.server.controller
 
 import com.sl.web.server.code.Aes
+import com.sl.web.server.dto.AccountDto
 import com.sl.web.server.email.EmailSender
 import com.sl.web.server.email.generateResetLinkEmail
 import com.sl.web.server.email.generateVerificationCodeEmail
@@ -11,14 +12,17 @@ import com.sl.web.server.response.Wrapper
 import com.sl.web.server.response.wrapper
 import com.sl.web.server.response.wrapperWithToken
 import com.sl.web.server.security.TokenManager
+import com.sl.web.server.service.LogService
 import com.sl.web.server.service.UserService
 import com.sl.web.server.service.ValidationCodeService
-import com.sl.web.server.utils.isEmail
 import com.sl.web.server.utils.isValid
-import kotlinx.coroutines.*
+import com.sl.web.server.utils.toDateTime
+import kotlinx.coroutines.withContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
+import java.text.SimpleDateFormat
 import java.util.*
+
 
 /**
  * 原来打算将验证码单独踢出去，后面发现验证码和账户耦合太重拆不开
@@ -34,6 +38,9 @@ class AccountController : BasicController() {
     @Autowired
     lateinit var validationCodeService: ValidationCodeService
 
+    @Autowired
+    lateinit var logService: LogService
+
     @GetMapping("/apply_code")
     suspend fun applyCode(
         @RequestParam(name = "user_id", required = true) user_id: String,
@@ -47,12 +54,12 @@ class AccountController : BasicController() {
                 bean = ValidationCode()
                 bean.userId = user_id
                 bean.email = email
-                bean.lastApplyTime = Date(0L).toString()
+                bean.lastApplyTime = Date(10000L).time
             }
 
-            val time = Date(bean.lastApplyTime).time
+            val time = bean.lastApplyTime
             // 限制每个邮箱 60s 发一次验证码
-            if ((System.currentTimeMillis() - time) < 60) return@withContext "".wrapper(101, "请求太频繁，请稍后再试！")
+            if ((System.currentTimeMillis() - time) < 60 * 1000) return@withContext "".wrapper(101, "请求太频繁，请稍后再试！")
             when (operation) {
                 "reset" -> {
                     // 重置密码
@@ -60,27 +67,48 @@ class AccountController : BasicController() {
                         return@withContext "".wrapper(404, "该账户或邮箱并未注册")
                     }
 
-                    TokenManager.generateTokenForReset(user_id)
+                    val resetToken = TokenManager.generateTokenForReset(user_id)
+                        ?: return@withContext "".wrapper(201, "验证失败")
+                    val user = userService.query(setOf(user_id)).let {
+                        if (it.size == 1) {
+                            it[0].token = resetToken
+                        }
+                        it[0]
+                    }
+                    if (!userService.update(user)) {
+                        return@withContext "".wrapper(201, "请求失败")
+                    }
+                    validationCodeService.saveOrUpdate(bean)
                     EmailSender.Builder()
                         .init()
                         .setTitle("重置密码")
-                        .setContent(generateResetLinkEmail(resetUrl))
-                        .setReceiver(email)
+                        .setContent(generateResetLinkEmail("$resetUrl?token=$resetToken"))
+                        .setReceiver(arrayOf(email))
+                        .build()
                         .send()
-                    validationCodeService.saveOrUpdate(bean)
                     return@withContext "".wrapper(200, "邮件发送成功，请检查邮箱。")
                 }
                 "register" -> {
                     // 注册
                     val code = validationCodeService.generateCode()
+                    bean.userId = user_id
+                    bean.code = code
+                    // 五分钟内有效
+                    bean.lastApplyTime = System.currentTimeMillis() + 60 * 5 * 1000
+                    validationCodeService.saveOrUpdate(bean)
                     EmailSender.Builder()
                         .init()
                         .setTitle("注册账户")
                         .setContent(generateVerificationCodeEmail("注册账户", code))
-                        .setReceiver(email)
+                        .setReceiver(arrayOf(email))
+                        .build()
                         .send()
-                    bean.code = code
-                    validationCodeService.saveOrUpdate(bean)
+//                    val log = EventLog().apply {
+//                        createTime = Date().toString()
+//                        type = EventLog.Type.Register
+//                        userId = user_id
+//                        content =
+//                    }
                     return@withContext "".wrapper(200, "验证码发送成功。")
                 }
             }
@@ -118,46 +146,38 @@ class AccountController : BasicController() {
 
     @PostMapping("/login")
     suspend fun login(
-        @RequestBody(required = true) user_id: String,
-        @RequestBody(required = true) password: String,
-        @RequestBody(required = true) timestamp: Long,
-        @RequestBody(required = true) validation_code: String
-    ): Wrapper<SimpleToken> {
+        @RequestBody(required = true) dto: AccountDto
+    ): Wrapper<User> {
         return withContext(coroutineContext) {
-            val bean = validationCodeService.query(user_id) ?: return@withContext "".wrapperWithToken(100, "验证码有误")
-            if (bean.code != validation_code) return@withContext "".wrapperWithToken(101, "验证码错误")
-            else
-                if (!bean.lastApplyTime.isValid())
-                    return@withContext "".wrapperWithToken(102, "验证码失效")
-            val token = userService.login(user_id, password, timestamp)
-            if (token.isEmpty()) {
-                return@withContext "".wrapperWithToken(201, "登录失败")
-            }
-            token.wrapperWithToken(200, "注册成功")
+//            val bean = validationCodeService.query(dto.user_id) ?: return@withContext "".wrapperWithToken(100, "验证码有误")
+//            if (bean.code !=dto.validation_code) return@withContext "".wrapperWithToken(101, "验证码错误")
+//            else
+//                if (!bean.lastApplyTime.isValid())
+//                    return@withContext "".wrapperWithToken(102, "验证码失效")
+            val user = userService.login(dto.user_id, dto.password, dto.timestamp)
+                ?: return@withContext User().wrapper(201, "登录失败")
+
+            user.wrapper(200, "登录成功")
         }
     }
 
     @PostMapping("/register")
     suspend fun register(
-        @RequestBody(required = true) user_id: String,
-        @RequestBody(required = true) username: String,
-        @RequestBody(required = true) email: String,
-        @RequestBody(required = true) password: String,
-        @RequestBody(required = true) validation_code: String
+        @RequestBody(required = true) dto: AccountDto
     ): Wrapper<String> {
         return withContext(coroutineContext) {
-            val code = validationCodeService.query(user_id) ?: return@withContext "".wrapper(100, "验证码有误")
-            if (code.code != validation_code)
+            val code = validationCodeService.query(dto.user_id) ?: return@withContext "".wrapper(100, "验证码有误")
+            if (code.code != dto.validation_code)
                 return@withContext "".wrapper(101, "验证码错误")
             else
                 if (!code.lastApplyTime.isValid())
                     return@withContext "".wrapper(102, "验证码失效")
 
             val user = User().apply {
-                this.userId = user_id
-                this.email = email
-                this.username = username
-                this.password = Aes.encrypt(password)
+                this.userId = dto.user_id
+                this.email = dto.email
+                this.username = dto.username
+                this.password = Aes.encrypt(dto.password)
             }
             val count = userService.register(user)
             if (count != 1) {
@@ -169,12 +189,14 @@ class AccountController : BasicController() {
 
     @PostMapping("/update")
     suspend fun update(
-        @RequestBody(required = true) userId: String,
-        @RequestBody(required = true) password: String,
-        @RequestBody(required = true) new_password: String
+        @RequestBody(required = true) dto: AccountDto
     ): Wrapper<String> {
         return withContext(coroutineContext) {
-            val count = userService.update(userId, password, new_password)
+            TokenManager.decodeToken(dto.token)?.first ?: return@withContext "".wrapper(101, "验证失败")
+            if (!TokenManager.validationToken(dto.token, userService::checkId)) {
+                return@withContext "".wrapper(101, "验证失败")
+            }
+            val count = userService.update(dto.user_id, dto.password, dto.new_password)
             if (count == 0) {
                 return@withContext "".wrapper(201, "信息有误")
             }
@@ -184,11 +206,16 @@ class AccountController : BasicController() {
 
     @PostMapping("/update_username")
     suspend fun updateUsername(
-        @RequestBody(required = true) token: String,
-        @RequestBody(required = true) new_username: String
+        @RequestBody(required = true) dto: AccountDto
     ): Wrapper<String> {
         return withContext(coroutineContext) {
-            val count = userService.updateUsername(token, new_username)
+            if (!TokenManager.validationToken(dto.token, userService::checkId)) {
+                return@withContext "".wrapper(301, "token过期")
+            }
+            val user_id =
+                TokenManager.decodeToken(token = dto.token)?.first ?: return@withContext "".wrapper(301, "链接失效或者其他错误")
+
+            val count = userService.updateUsername(user_id, dto.new_username)
             if (count == 0) {
                 return@withContext "".wrapper(201, "修改失败")
             }
@@ -198,17 +225,17 @@ class AccountController : BasicController() {
 
     @PostMapping("/reset")
     suspend fun reset(
-        @RequestBody(required = true) validation_token: String,
-        @RequestBody(required = true) new_password: String
+        @RequestBody(required = true) dto: AccountDto
     ): Wrapper<String> {
         return withContext(coroutineContext) {
-            if (!TokenManager.validationToken(validation_token, userService::checkId)) {
+            if (!TokenManager.validationResetToken(dto.validation_token, userService::checkId)) {
                 return@withContext "".wrapper(301, "链接失效或者其他错误")
             }
-            val info = TokenManager.decodeToken(validation_token) ?: return@withContext "".wrapper(300, "信息有误")
-            val count = userService.update(info.first, new_password)
+            val info = TokenManager.decodeToken(dto.validation_token, TokenManager.tokenKey.uppercase() + "temp")
+                ?: return@withContext "".wrapper(300, "信息有误")
+            val count = userService.update(info.first, dto.new_password)
             if (count != 1) {
-                return@withContext "".wrapper(300, "信息有误")
+                return@withContext "".wrapper(302, "修改失败")
             }
             "".wrapper(200, "修改成功")
         }

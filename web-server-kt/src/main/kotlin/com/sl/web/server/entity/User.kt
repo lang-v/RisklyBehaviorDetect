@@ -1,9 +1,7 @@
 package com.sl.web.server.entity
 
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Id
-import javax.persistence.Table
+import com.fasterxml.jackson.annotation.JsonIgnore
+import javax.persistence.*
 
 
 @Entity
@@ -20,9 +18,11 @@ class User{
     @Column(name = "username")
     var username = ""
 
+    @JsonIgnore
     @Column(name = "password")
     var password = ""
 
     @Column(name = "token")
     var token = ""
+
 }

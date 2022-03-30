@@ -1,10 +1,7 @@
 package com.sl.web.server.security
 
 import com.sl.web.server.code.Aes
-import com.sl.web.server.utils.fromUnicode
-import com.sl.web.server.utils.isLegal
-import com.sl.web.server.utils.isLegalToken
-import com.sl.web.server.utils.isTimeStamp
+import com.sl.web.server.utils.*
 import java.util.*
 
 /**
@@ -14,7 +11,7 @@ import java.util.*
  */
 object TokenManager {
 
-    private const val tokenKey = "RisklyBehaviorDetection"
+    const val tokenKey = "RisklyBehaviorDetection"
 
     fun checkFormat(userId: String, key: String, timeStamp: String? = null): Boolean {
         if (userId.isLegal() && key.isLegal()) {
@@ -40,10 +37,8 @@ object TokenManager {
                     // 说明账户不存在
                     if (count == 0) return false
                 }
-                val day = Date(it[1].toLong())
-                val today = Date()
                 // 判断token 是否过期
-                return today.after(day)
+                return it[1].toLong().isValid()
             }
     }
 
@@ -71,6 +66,22 @@ object TokenManager {
         val key = tokenKey.uppercase() + "temp"
         val time = System.currentTimeMillis() + 1000 * 60 * 60 * 24 // 有效时间1天
         return encodeToken(userId, time, key)
+    }
+
+    fun validationResetToken(token: String,checkId: (String) -> Int):Boolean {
+        if (!token.isLegalToken()) return false
+        val origin = Aes.decrypt(token, tokenKey.uppercase()+"temp")
+        origin.split("-${tokenKey.uppercase()+"temp"}+")
+            .takeIf { it.size == 2 && it[0].isLegal() && it[1].isTimeStamp() }
+            .let { it ->
+                it?:return false
+                checkId.invoke(it[0]).let { count->
+                    // 说明账户不存在
+                    if (count == 0) return false
+                }
+                // 判断token 是否过期
+                return it[1].toLong().isValid()
+            }
     }
 
     /**

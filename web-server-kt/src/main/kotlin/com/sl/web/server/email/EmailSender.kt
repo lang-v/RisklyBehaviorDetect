@@ -62,8 +62,9 @@ class EmailSender {
         return this
     }
 
-    fun setReceiver(toEmail:String):EmailSender{
-        mimeMessage.setRecipient(Message.RecipientType.TO, InternetAddress(toEmail))
+    fun setReceiver(receivers:Array<String>):EmailSender{
+        val ads = receivers.map { InternetAddress(it) }.toTypedArray()
+        mimeMessage.setRecipients(Message.RecipientType.TO, ads)
         return this
     }
 

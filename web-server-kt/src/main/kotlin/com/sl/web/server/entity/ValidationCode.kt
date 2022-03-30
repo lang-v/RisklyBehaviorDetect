@@ -3,6 +3,7 @@ package com.sl.web.server.entity
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.Id
+import javax.persistence.OneToOne
 
 @Entity(name = "validation_code")
 class ValidationCode {
@@ -17,8 +18,8 @@ class ValidationCode {
     @Column(name = "email")
     var email = ""
 
-    @Column(name = "last_apply_time",columnDefinition = "datetime")
-    var lastApplyTime = ""
+    @Column(name = "last_apply_time")
+    var lastApplyTime = 0L
 
     @Column(name = "code",length = 6)
     var code = ""

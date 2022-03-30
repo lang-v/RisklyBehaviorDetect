@@ -24,25 +24,18 @@ class UserServiceImpl : UserService {
         return userMapper.findAllById(userId)
     }
 
-    override suspend fun login(userId: String, password: String, timestamp: Long): String {
-        val temp = Aes.decrypt(password, timestamp.toString())
-        val realPassword = Aes.encrypt(temp,Aes.publicKey)
-        val user = User().apply {
-            this.userId = userId
-            this.password = realPassword
+    override suspend fun login(userId: String, password: String, timestamp: Long): User? {
+        val user = userMapper.findById(userId).let {
+            if (it.isPresent) it.get() else return null
         }
-        val example = Example.of(user, ExampleMatcher.matchingAny().withIgnoreNullValues())
-        userMapper.findOne(example).takeIf { it.isPresent }?.get().let {
-            if (it == null) {
-                return ""
-            }else{
-                if (!TokenManager.validationToken(it.token,this::checkId)){
-                    val newToken = TokenManager.generateToken(userId)?:return ""
-                    it.token = newToken
-                }
-                return it.token
-            }
+        val realPassword = Aes.encrypt(password)
+        if (realPassword != user.password)
+            return null
+        if (!TokenManager.validationToken(user.token,this::checkId)){
+            val newToken = TokenManager.generateToken(userId)?:return null
+            user.token = newToken
         }
+        return user
     }
 
     override suspend fun register(user: User): Int {
@@ -52,7 +45,10 @@ class UserServiceImpl : UserService {
     }
 
     override suspend fun updateUsername(userId: String, newUsername: String): Int {
-        val user = userMapper.findById(userId).get()
+        val user = userMapper.findById(userId).let {
+            if (it.isPresent) it.get()
+            else return 0
+        }
         user.username = newUsername
         userMapper.saveAndFlush(user)
         return 1
@@ -65,6 +61,11 @@ class UserServiceImpl : UserService {
         user.password = code
         userMapper.saveAndFlush(user)
         return 1
+    }
+
+    override suspend fun update(user: User): Boolean {
+        userMapper.saveAndFlush(user)
+        return true
     }
 
     override suspend fun update(userId: String, password: String, newPassword: String): Int {
