@@ -1,5 +1,6 @@
 package com.sl.web.server.entity
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import javax.persistence.*
 
 @Entity
@@ -21,6 +22,11 @@ class EventLog {
 
     @Column(name = "content")
     lateinit var content:String
+
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "event_id")
+    lateinit var user: User
 
     enum class Type{Login,Register,Reset,Update,Alarm,Other}
 }

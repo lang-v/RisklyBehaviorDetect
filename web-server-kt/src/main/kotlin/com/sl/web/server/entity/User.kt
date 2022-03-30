@@ -28,4 +28,8 @@ class User{
     @JsonIgnore
     @OneToMany(targetEntity = VideoSource::class,cascade = [CascadeType.ALL],fetch = FetchType.EAGER)
     lateinit var projects:Set<VideoSource>
+
+    @JsonIgnore
+    @OneToMany(targetEntity = EventLog::class, cascade = [CascadeType.ALL],fetch = FetchType.EAGER)
+    lateinit var events:Set<EventLog>
 }
