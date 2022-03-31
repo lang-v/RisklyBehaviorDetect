@@ -1,13 +1,13 @@
 package com.sl.web.server.email
 
 import com.sun.mail.util.MailSSLSocketFactory
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.withContext
 import java.security.GeneralSecurityException
 import java.security.NoSuchProviderException
 import java.util.*
-import javax.mail.*
+import javax.mail.Message
+import javax.mail.MessagingException
+import javax.mail.Session
+import javax.mail.Transport
 import javax.mail.internet.InternetAddress
 import javax.mail.internet.MimeMessage
 
@@ -27,8 +27,8 @@ class EmailSender {
     private val host = "smtp.qq.com"
 
 
-    private lateinit var properties:Properties
-    private lateinit var session:Session
+    private lateinit var properties: Properties
+    private lateinit var session: Session
     private lateinit var mimeMessage: MimeMessage
 
     private fun init() {
@@ -52,29 +52,29 @@ class EmailSender {
         mimeMessage = MimeMessage(session)
     }
 
-    fun setTitle(title:String):EmailSender{
+    fun setTitle(title: String): EmailSender {
         mimeMessage.subject = title
         return this
     }
 
-    fun setContent(content: String):EmailSender{
-        mimeMessage.setContent(content,"text/html;charset=UTF-8")
+    fun setContent(content: String): EmailSender {
+        mimeMessage.setContent(content, "text/html;charset=UTF-8")
         return this
     }
 
-    fun setReceiver(receivers:Array<String>):EmailSender{
+    fun setReceiver(receivers: Array<String>): EmailSender {
         val ads = receivers.map { InternetAddress(it) }.toTypedArray()
         mimeMessage.setRecipients(Message.RecipientType.TO, ads)
         return this
     }
 
-    fun build():EmailSender{
+    fun build(): EmailSender {
         mimeMessage.setFrom(InternetAddress(recipient))
 
         return this
     }
 
-    suspend fun send():Boolean{
+    suspend fun send(): Boolean {
         //获取连接对象
         var transport: Transport? = null
         try {
@@ -82,20 +82,27 @@ class EmailSender {
         } catch (e: NoSuchProviderException) {
             e.printStackTrace()
         }
-        transport?:return false
+        transport ?: return false
 
         //连接服务器
         transport.connect(host, From, password)
 
-        //发送邮件
-        transport.sendMessage(mimeMessage, mimeMessage.allRecipients)
-        transport.close()
+        try {
+            //发送邮件
+            transport.sendMessage(mimeMessage, mimeMessage.allRecipients)
+        } catch (e: MessagingException) {
+//            e.printStackTrace()
+            println("邮件发送失败，邮箱有误！")
+        } finally {
+            transport.close()
+        }
+
         return true
     }
 
-    class Builder{
+    class Builder {
         private val sender = EmailSender()
-        fun init():EmailSender {
+        fun init(): EmailSender {
             sender.init()
             return sender
         }

@@ -29,7 +29,7 @@ fun String.isLegal(): Boolean {
     return !origin.contains(illegalCharRegex)
 }
 
-val illegalTokenRegex = Regex("""[^0-9a-zA-Z=]""")
+val illegalTokenRegex = Regex("""[^0-9a-zA-Z=+]""")
 
 /**
  * 校验字符串是否是合规token

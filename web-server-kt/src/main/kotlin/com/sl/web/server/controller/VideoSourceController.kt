@@ -140,10 +140,12 @@ class VideoSourceController : BasicController() {
             val videoSource = videoSourceService.query(userId,vsDto.resourceId)
                 ?: return@withContext "".wrapper(201, "资源错误")
             val members = videoSource.members
-            val userList = userService.query(members.map { it.user_id }.toSet())
+            val userList = userService.query(members.map { it.user_id }.toSet().plus(userId))
+
 
             val emailList = ArrayList<String>()
-            emailList.add(videoSource.owner)
+            // fixed 这里应该填邮箱地址
+//            emailList.add(videoSource.owner)
             emailList.addAll(userList.map { it.email })
 
             val time = Date(vsDto.notifyTime).time

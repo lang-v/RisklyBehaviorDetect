@@ -18,29 +18,27 @@ class LogServiceImpl : LogService {
     lateinit var logMapper: LogMapper
 
     @Autowired
-    lateinit var userMapper:UserMapper
+    lateinit var userMapper: UserMapper
 
     override suspend fun insert(log: EventLog): Int {
         logMapper.saveAndFlush(log)
         return 1
     }
 
-    override suspend fun queryByFilter(userId:String ,type: EventLog.Type, timeRange: LongRange?): List<EventLog> {
+    override suspend fun queryByFilter(
+        userId: String,
+        types: Set<EventLog.Type>,
+        timeRange: LongRange?
+    ): List<EventLog> {
         val user = userMapper.findById(userId).let {
             if (it.isPresent) it.get() else return listOf()
         }
-
-        return if (type == EventLog.Type.All) {
-            if (timeRange != null)
-                return user.events.filter { it.createTime in timeRange }.toList()
-            user.events.toList()
-        }else{
-            val list = user.events.filter { it.type == type }.toList()
-            if (timeRange == null) list else list.filter { it.createTime in timeRange }
-        }
+        if (types.isEmpty()) return listOf()
+        val list = user.events.filter { it.type in types }.toList()
+        return if (timeRange == null) list else list.filter { it.createTime in timeRange }
     }
 
-    override suspend fun queryAll(userId:String): List<EventLog> {
+    override suspend fun queryAll(userId: String): List<EventLog> {
         val eventLog = EventLog()
 //        eventLog.user.userId = userId
 //        eventLog.user.userId = userId

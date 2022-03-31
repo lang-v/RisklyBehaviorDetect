@@ -4,7 +4,7 @@ import com.sl.web.server.entity.EventLog
 
 class EventLogDto {
     var token = ""
-    var type = EventLog.Type.All
+    var type :Set<EventLog.Type> = setOf()
 
     /**
      * 初步估计这个查询比较耗时

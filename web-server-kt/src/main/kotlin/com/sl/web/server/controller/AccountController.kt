@@ -84,6 +84,9 @@ class AccountController : BasicController() {
                     return@withContext "".wrapper(200, "邮件发送成功，请检查邮箱。")
                 }
                 "register" -> {
+                    if (userService.checkIdAndEmail(user_id, email)) {
+                        return@withContext "".wrapper(203, "该账户或邮箱已注册")
+                    }
                     // 注册
                     val code = validationCodeService.generateCode()
                     bean.userId = user_id
@@ -170,7 +173,7 @@ class AccountController : BasicController() {
 //            val user = userService.query(setOf(userId))[0]
             EventLogBuilder()
                 .setCreateTime(System.currentTimeMillis())
-                .setType(EventLog.Type.ProjectCreate)
+                .setType(EventLog.Type.Login)
                 .setContent("user ${user.username} : login")
                 .saveTo(user)
             userService.update(user)
@@ -203,7 +206,7 @@ class AccountController : BasicController() {
             val newUser = userService.query(setOf(dto.user_id))[0]
             EventLogBuilder()
                 .setCreateTime(System.currentTimeMillis())
-                .setType(EventLog.Type.ProjectCreate)
+                .setType(EventLog.Type.Register)
                 .setContent("user ${newUser.username} : register")
                 .saveTo(newUser)
             userService.update(newUser)
@@ -227,7 +230,7 @@ class AccountController : BasicController() {
             val newUser = userService.query(setOf(dto.user_id))[0]
             EventLogBuilder()
                 .setCreateTime(System.currentTimeMillis())
-                .setType(EventLog.Type.ProjectCreate)
+                .setType(EventLog.Type.Update)
                 .setContent("user ${newUser.username} : update password [\"${dto.password}\" -> \"${dto.new_password}\"]")
                 .saveTo(newUser)
             userService.update(newUser)
@@ -253,7 +256,7 @@ class AccountController : BasicController() {
             val newUser = userService.query(setOf(dto.user_id))[0]
             EventLogBuilder()
                 .setCreateTime(System.currentTimeMillis())
-                .setType(EventLog.Type.ProjectCreate)
+                .setType(EventLog.Type.Update)
                 .setContent("user ${newUser.username} : update username [\"${dto.username}\" -> \"${dto.new_username}\"]")
                 .saveTo(newUser)
             userService.update(newUser)
@@ -275,10 +278,11 @@ class AccountController : BasicController() {
             if (count != 1) {
                 return@withContext "".wrapper(302, "修改失败")
             }
-            val newUser = userService.query(setOf(dto.user_id))[0]
+            // fixed 这里是重置密码，dto 中没有userId
+            val newUser = userService.query(setOf(info.first))[0]
             EventLogBuilder()
                 .setCreateTime(System.currentTimeMillis())
-                .setType(EventLog.Type.ProjectCreate)
+                .setType(EventLog.Type.Reset)
                 .setContent("user ${newUser.username} : reset ")
                 .saveTo(newUser)
             userService.update(newUser)
