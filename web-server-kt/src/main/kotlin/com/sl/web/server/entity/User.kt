@@ -9,25 +9,25 @@ import javax.persistence.*
 class User{
 
     @Id
-    @Column(name = "user_id",updatable = false)
+    @Column(name = "user_id",updatable = false,nullable = false)
     var userId: String = ""
 
-    @Column(name = "email")
+    @Column(name = "email",nullable = false)
     var email = ""
 
     @Column(name = "username")
     var username = ""
 
     @JsonIgnore
-    @Column(name = "password")
+    @Column(name = "password",nullable = false)
     var password = ""
 
     @Column(name = "token")
     var token = ""
 
     @JsonIgnore
-    @OneToMany(targetEntity = VideoSource::class,cascade = [CascadeType.ALL],fetch = FetchType.EAGER)
-    lateinit var projects:Set<VideoSource>
+    @OneToMany(targetEntity = Project::class,cascade = [CascadeType.ALL],fetch = FetchType.EAGER)
+    lateinit var projects:Set<Project>
 
     @JsonIgnore
     @OneToMany(targetEntity = EventLog::class, cascade = [CascadeType.ALL],fetch = FetchType.EAGER)

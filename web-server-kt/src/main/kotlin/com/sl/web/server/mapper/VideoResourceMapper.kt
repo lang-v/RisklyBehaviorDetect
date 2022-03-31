@@ -1,6 +1,6 @@
 package com.sl.web.server.mapper
 
-import com.sl.web.server.entity.VideoSource
+import com.sl.web.server.entity.Project
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface VideoResourceMapper:JpaRepository<VideoSource,Int>
+interface VideoResourceMapper:JpaRepository<Project,Int>

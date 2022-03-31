@@ -11,9 +11,9 @@ class Member {
     var member_id = 0
 
     @JsonIgnore
-    @ManyToOne(cascade = [CascadeType.ALL])
+    @ManyToOne(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     @JoinColumn(name = "resource_id")
-    lateinit var source:VideoSource
+    lateinit var source:Project
 
     @Column(name = "user_id")
     lateinit var user_id:String

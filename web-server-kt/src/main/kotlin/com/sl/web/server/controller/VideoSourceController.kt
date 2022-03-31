@@ -24,14 +24,7 @@ import kotlin.collections.ArrayList
 class VideoSourceController : BasicController() {
 
     @Autowired
-    lateinit var userService: UserService
-
-    @Autowired
     lateinit var videoSourceService: VideoSourceService
-
-    @Autowired
-    lateinit var logService: LogService
-
 
     @PostMapping("/create")
     suspend fun createVideoSource(
@@ -41,7 +34,9 @@ class VideoSourceController : BasicController() {
             if (!TokenManager.validationToken(vsDto.token, userService::checkId))
                 return@withContext "".wrapper(101, "token失效")
             val userId = TokenManager.decodeToken(vsDto.token)!!.first
-            videoSourceService.insert(userId, vsDto.url, vsDto.projectName)
+            val count = videoSourceService.insert(userId, vsDto.url, vsDto.projectName)
+            if (count == 0)
+                "".wrapper(203, "创建失败")
             "".wrapper(200, "创建成功")
         }
     }
@@ -83,8 +78,8 @@ class VideoSourceController : BasicController() {
             if (!TokenManager.validationToken(vsDto.token, userService::checkId))
                 return@withContext "".wrapper(101, "token失效")
             val userId = TokenManager.decodeToken(vsDto.token)!!.first
-            val videoSource = videoSourceService.query(vsDto.resourceId) ?: return@withContext "".wrapper(302, "查询失败")
-            if (userId != videoSource.user.userId && !videoSource.members.map { it.user_id }.contains(userId))
+            val videoSource = videoSourceService.query(userId,vsDto.resourceId) ?: return@withContext "".wrapper(302, "查询失败")
+            if (userId != videoSource.owner && !videoSource.members.map { it.user_id }.contains(userId))
                 return@withContext "".wrapper(303, "无权限访问资源")
             val records = videoSource.records
             records.wrapper(200, "查询成功")
@@ -113,15 +108,16 @@ class VideoSourceController : BasicController() {
         @RequestBody(required = true) vsDto: VideoSourceDto
     ): Wrapper<String> {
         return withContext(coroutineContext) {
-            if (!TokenManager.validationToken(vsDto.token, userService::checkId))
+            val userId = checkTokenAndBackID(vsDto.token) {
                 return@withContext "".wrapper(101, "token失效")
-            val videoSource = videoSourceService.query(vsDto.resourceId)
+            }
+            val videoSource = videoSourceService.query(userId,vsDto.resourceId)
                 ?: return@withContext "".wrapper(201, "资源错误")
             val members = videoSource.members
             val userList = userService.query(members.map { it.user_id }.toSet())
 
             val emailList = ArrayList<String>()
-            emailList.add(videoSource.user.userId)
+            emailList.add(videoSource.owner)
             emailList.addAll(userList.map { it.email })
 
             val time = Date(vsDto.notifyTime).time
@@ -144,18 +140,21 @@ class VideoSourceController : BasicController() {
             record.action_code = maxLevel
             record.time = vsDto.notifyTime
             videoSource.records = videoSource.records.plus(record)
-            var count =  videoSourceService.update(videoSource)
+            val count = videoSourceService.update(videoSource)
             if (count != 1)
                 return@withContext "".wrapper(201, "记录失败")
 
             // 写入日志
             val log = EventLog()
             log.createTime = time
-            log.userId = videoSource.user.userId
+//            log.userId = userId
+            log.resourceId = videoSource.resourceId
             log.type = EventLog.Type.Alarm
-            log.content = "action codes:${vsDto.actionCodes} - level top:$maxLevel"
-            count = logService.insert(log)
-            if (count == 1)
+            log.content = "project [${vsDto.resourceId}:${videoSource.name}] - action codes:${vsDto.actionCodes} - level top:$maxLevel"
+            val user = userService.query(setOf(userId))[0]
+            user.events = user.events.plus(log)
+//            count = logService.insert(log)
+            if (userService.update(user))
                 "".wrapper(200, "上报成功")
             else
                 "".wrapper(201, "上报失败")
@@ -182,5 +181,4 @@ class VideoSourceController : BasicController() {
         }
         return levels
     }
-
 }

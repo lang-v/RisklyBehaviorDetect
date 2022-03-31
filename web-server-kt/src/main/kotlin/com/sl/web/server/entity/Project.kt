@@ -5,7 +5,7 @@ import org.hibernate.mapping.Join
 import javax.persistence.*
 
 @Entity(name = "projects")
-class VideoSource {
+class Project {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,10 +25,13 @@ class VideoSource {
     @Column(name = "create_time")
     var createTime = 0L
 
+    @Column(name = "owner")
+    var owner = ""
+
     @JsonIgnore
     //    @Column(name = "user_id")
-    @ManyToOne(cascade = [CascadeType.ALL])
-    @JoinColumn(name = "project_id")
+    @ManyToOne(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+    @JoinColumn(name = "users_id")
     lateinit var user: User
 
     //    @JsonIgnore

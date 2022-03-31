@@ -12,10 +12,10 @@ class Record {
     var record_id = 0
 
     @JsonIgnore
-    @ManyToOne(cascade = [CascadeType.ALL])
+    @ManyToOne(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     @JoinColumn(name = "resource_id")
 //    @JoinColumn(name = "project1",foreignKey = ForeignKey(name = "test1"))
-    lateinit var source: VideoSource
+    lateinit var source: Project
 
 
     @Column(name = "time")

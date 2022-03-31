@@ -42,7 +42,6 @@ object TokenManager {
             }
     }
 
-
     fun decodeToken(token: String,key: String = tokenKey): Pair<String, Long>? {
         // Aes 解码
         val origin = Aes.decrypt(token.toCharArray(), key.toCharArray()).fromUnicode()

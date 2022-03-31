@@ -33,14 +33,7 @@ import java.util.*
 class AccountController : BasicController() {
 
     @Autowired
-    lateinit var userService: UserService
-
-    @Autowired
     lateinit var validationCodeService: ValidationCodeService
-
-    @Autowired
-    lateinit var logService: LogService
-
     @GetMapping("/apply_code")
     suspend fun applyCode(
         @RequestParam(name = "user_id", required = true) user_id: String,

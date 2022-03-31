@@ -4,29 +4,30 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import javax.persistence.*
 
 @Entity
-@Table(name="log_info")
+@Table(name = "log_info")
 class EventLog {
     @Id
-    @Column(name = "log_id",nullable = false)
-    var logId = -1
-
-    @Column(name = "user_id")
-    lateinit var userId:String
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "log_id", nullable = false)
+    var logId = 0
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
-    lateinit var type:Type
+    var type: Type = Type.All
 
     @Column(name = "create_time")
     var createTime = 0L
 
+    @Column(name = "resource_id")
+    var resourceId = -1
+
     @Column(name = "content")
-    lateinit var content:String
+    var content: String = ""
 
     @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name = "event_id")
+    @ManyToOne(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+    @JoinColumn(name = "users_id")
     lateinit var user: User
 
-    enum class Type{Login,Register,Reset,Update,Alarm,Other}
+    enum class Type { Login, Register, Reset, Update, Alarm, All }
 }
