@@ -11,6 +11,7 @@ import com.sl.web.server.security.TokenManager
 import com.sl.web.server.service.LogService
 import com.sl.web.server.service.UserService
 import com.sl.web.server.service.VideoSourceService
+import com.sl.web.server.utils.EventLogBuilder
 import com.sl.web.server.utils.toDateTime
 import kotlinx.coroutines.withContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,9 +35,15 @@ class VideoSourceController : BasicController() {
             if (!TokenManager.validationToken(vsDto.token, userService::checkId))
                 return@withContext "".wrapper(101, "token失效")
             val userId = TokenManager.decodeToken(vsDto.token)!!.first
-            val count = videoSourceService.insert(userId, vsDto.url, vsDto.projectName)
-            if (count == 0)
-                "".wrapper(203, "创建失败")
+            val project = videoSourceService.insert(userId, vsDto.url, vsDto.projectName)?: return@withContext "".wrapper(203, "创建失败")
+            val user = userService.query(setOf(userId))[0]
+            EventLogBuilder()
+                .setCreateTime(System.currentTimeMillis())
+                .setType(EventLog.Type.ProjectCreate)
+                .setResourceId(project.resourceId)
+                .setContent("project [${project.resourceId}:${project.name}] create")
+                .saveTo(user)
+            userService.update(user)
             "".wrapper(200, "创建成功")
         }
     }
@@ -63,12 +70,48 @@ class VideoSourceController : BasicController() {
                 return@withContext "".wrapper(101, "token失效")
             val userId = TokenManager.decodeToken(vsDto.token)!!.first
             val count = videoSourceService.addMember(vsDto.resourceId, userId, vsDto.members)
-            if (count > 0 && count == vsDto.members.size)
+            if (count <= 0 || count != vsDto.members.size)
+                return@withContext "".wrapper(201, "添加失败")
+            else {
+                val user = userService.query(setOf(userId))[0]
+                EventLogBuilder()
+                    .setCreateTime(System.currentTimeMillis())
+                    .setType(EventLog.Type.ProjectAddMember)
+                    .setResourceId(vsDto.resourceId)
+                    .setContent("project [${vsDto.resourceId}:${vsDto.projectName}] add members ${vsDto.members}")
+                    .saveTo(user)
+                userService.update(user)
                 "".wrapper(200, "添加成功")
-            else
-                "".wrapper(201, "添加失败")
+            }
         }
     }
+
+    @PostMapping("/remove_member")
+    suspend fun removeMembers(
+        @RequestBody(required = true) vsDto: VideoSourceDto
+    ): Wrapper<String> {
+        return withContext(coroutineContext) {
+            if (!TokenManager.validationToken(vsDto.token, userService::checkId))
+                return@withContext "".wrapper(101, "token失效")
+            val userId = TokenManager.decodeToken(vsDto.token)!!.first
+            val count = videoSourceService.removeMember(vsDto.resourceId, userId, vsDto.members)
+            if (count <= 0 || count != vsDto.members.size)
+                "".wrapper(201, "操作失败")
+            else {
+                val user = userService.query(setOf(userId))[0]
+                EventLogBuilder()
+                    .setCreateTime(System.currentTimeMillis())
+                    .setType(EventLog.Type.ProjectRemoveMember)
+                    .setResourceId(vsDto.resourceId)
+                    .setContent("project [${vsDto.resourceId}:${vsDto.projectName}] remove members ${vsDto.members}")
+                    .saveTo(user)
+                userService.update(user)
+                "".wrapper(200, "删除成功")
+            }
+
+        }
+    }
+
 
     @PostMapping("/query_record")
     suspend fun queryRecord(
@@ -85,23 +128,6 @@ class VideoSourceController : BasicController() {
             records.wrapper(200, "查询成功")
         }
     }
-
-    @PostMapping("/remove_member")
-    suspend fun removeMembers(
-        @RequestBody(required = true) vsDto: VideoSourceDto
-    ): Wrapper<String> {
-        return withContext(coroutineContext) {
-            if (!TokenManager.validationToken(vsDto.token, userService::checkId))
-                return@withContext "".wrapper(101, "token失效")
-            val userId = TokenManager.decodeToken(vsDto.token)!!.first
-            val count = videoSourceService.removeMember(vsDto.resourceId, userId, vsDto.members)
-            if (count == vsDto.members.size)
-                "".wrapper(200, "删除成功")
-            else
-                "".wrapper(201, "操作失败")
-        }
-    }
-
 
     @PostMapping("/report")
     suspend fun actionReport(
@@ -145,15 +171,13 @@ class VideoSourceController : BasicController() {
                 return@withContext "".wrapper(201, "记录失败")
 
             // 写入日志
-            val log = EventLog()
-            log.createTime = time
-//            log.userId = userId
-            log.resourceId = videoSource.resourceId
-            log.type = EventLog.Type.Alarm
-            log.content = "project [${vsDto.resourceId}:${videoSource.name}] - action codes:${vsDto.actionCodes} - level top:$maxLevel"
             val user = userService.query(setOf(userId))[0]
-            user.events = user.events.plus(log)
-//            count = logService.insert(log)
+            EventLogBuilder()
+                .setResourceId(videoSource.resourceId)
+                .setType(EventLog.Type.Alarm)
+                .setContent("project [${vsDto.resourceId}:${videoSource.name}] - action codes:${vsDto.actionCodes} - level top:$maxLevel")
+                .setCreateTime(time)
+                .saveTo(user)
             if (userService.update(user))
                 "".wrapper(200, "上报成功")
             else

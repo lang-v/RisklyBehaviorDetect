@@ -19,7 +19,7 @@ class VideoSourceServiceImpl : VideoSourceService {
     @Autowired
     lateinit var userMapper: UserMapper
 
-    override suspend fun insert(userId: String, source: String, projectName: String): Int {
+    override suspend fun insert(userId: String, source: String, projectName: String): Project? {
         val project = Project()
         project.name = projectName
         project.owner = userId
@@ -27,10 +27,10 @@ class VideoSourceServiceImpl : VideoSourceService {
         project.members = setOf()
         project.type = if (source == "0") Project.Type.Camera else Project.Type.LocalFile
         project.url = source
-        val user = userMapper.findByIdOrNull(userId) ?: return 0
+        val user = userMapper.findByIdOrNull(userId) ?: return null
         user.projects = user.projects.plus(project)
         userMapper.saveAndFlush(user)
-        return 1
+        return project
     }
 
     override suspend fun addMember(resourceId: Int, owner: String, userIds: Set<String>): Int {

@@ -29,5 +29,8 @@ class EventLog {
     @JoinColumn(name = "users_id")
     lateinit var user: User
 
-    enum class Type { Login, Register, Reset, Update, Alarm, All }
+    enum class Type {
+        Login, Register, Reset, Update, ProjectCreate,
+        ProjectAddMember, ProjectRemoveMember, Alarm, All
+    }
 }

@@ -4,7 +4,7 @@ import com.sl.web.server.entity.Project
 
 interface VideoSourceService {
 
-    suspend fun insert(userId: String, source: String, projectName:String): Int
+    suspend fun insert(userId: String, source: String, projectName:String): Project?
 
     suspend fun addMember(resourceId: Int, owner: String, userIds: Set<String>): Int
 

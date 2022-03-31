@@ -42,7 +42,7 @@ class LogServiceImpl : LogService {
 
     override suspend fun queryAll(userId:String): List<EventLog> {
         val eventLog = EventLog()
-        eventLog.user.userId = userId
+//        eventLog.user.userId = userId
 //        eventLog.user.userId = userId
         val example = Example.of(eventLog, ExampleMatcher.matchingAny())
         return logMapper.findAll(example)

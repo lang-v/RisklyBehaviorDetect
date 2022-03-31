@@ -5,6 +5,7 @@ import com.sl.web.server.dto.AccountDto
 import com.sl.web.server.email.EmailSender
 import com.sl.web.server.email.generateResetLinkEmail
 import com.sl.web.server.email.generateVerificationCodeEmail
+import com.sl.web.server.entity.EventLog
 import com.sl.web.server.entity.User
 import com.sl.web.server.entity.ValidationCode
 import com.sl.web.server.response.SimpleToken
@@ -15,6 +16,7 @@ import com.sl.web.server.security.TokenManager
 import com.sl.web.server.service.LogService
 import com.sl.web.server.service.UserService
 import com.sl.web.server.service.ValidationCodeService
+import com.sl.web.server.utils.EventLogBuilder
 import com.sl.web.server.utils.isValid
 import com.sl.web.server.utils.toDateTime
 import kotlinx.coroutines.withContext
@@ -165,7 +167,13 @@ class AccountController : BasicController() {
 //                    return@withContext "".wrapperWithToken(102, "验证码失效")
             val user = userService.login(dto.user_id, dto.password, dto.timestamp)
                 ?: return@withContext User().wrapper(201, "登录失败")
-
+//            val user = userService.query(setOf(userId))[0]
+            EventLogBuilder()
+                .setCreateTime(System.currentTimeMillis())
+                .setType(EventLog.Type.ProjectCreate)
+                .setContent("user ${user.username} : login")
+                .saveTo(user)
+            userService.update(user)
             user.wrapper(200, "登录成功")
         }
     }
@@ -192,6 +200,13 @@ class AccountController : BasicController() {
             if (count != 1) {
                 return@withContext "".wrapper(201, "注册失败")
             }
+            val newUser = userService.query(setOf(dto.user_id))[0]
+            EventLogBuilder()
+                .setCreateTime(System.currentTimeMillis())
+                .setType(EventLog.Type.ProjectCreate)
+                .setContent("user ${newUser.username} : register")
+                .saveTo(newUser)
+            userService.update(newUser)
             "".wrapper(200, "注册成功")
         }
     }
@@ -209,6 +224,13 @@ class AccountController : BasicController() {
             if (count == 0) {
                 return@withContext "".wrapper(201, "信息有误")
             }
+            val newUser = userService.query(setOf(dto.user_id))[0]
+            EventLogBuilder()
+                .setCreateTime(System.currentTimeMillis())
+                .setType(EventLog.Type.ProjectCreate)
+                .setContent("user ${newUser.username} : update password [\"${dto.password}\" -> \"${dto.new_password}\"]")
+                .saveTo(newUser)
+            userService.update(newUser)
             "".wrapper(200, "修改成功")
         }
     }
@@ -228,6 +250,13 @@ class AccountController : BasicController() {
             if (count == 0) {
                 return@withContext "".wrapper(201, "修改失败")
             }
+            val newUser = userService.query(setOf(dto.user_id))[0]
+            EventLogBuilder()
+                .setCreateTime(System.currentTimeMillis())
+                .setType(EventLog.Type.ProjectCreate)
+                .setContent("user ${newUser.username} : update username [\"${dto.username}\" -> \"${dto.new_username}\"]")
+                .saveTo(newUser)
+            userService.update(newUser)
             "".wrapper(200, "修改成功")
         }
     }
@@ -246,6 +275,13 @@ class AccountController : BasicController() {
             if (count != 1) {
                 return@withContext "".wrapper(302, "修改失败")
             }
+            val newUser = userService.query(setOf(dto.user_id))[0]
+            EventLogBuilder()
+                .setCreateTime(System.currentTimeMillis())
+                .setType(EventLog.Type.ProjectCreate)
+                .setContent("user ${newUser.username} : reset ")
+                .saveTo(newUser)
+            userService.update(newUser)
             "".wrapper(200, "修改成功")
         }
     }
