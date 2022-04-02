@@ -1,180 +1,197 @@
 <template>
   <div class="sign_in_box" id="signup">
-    <h4>注册账户</h4>
-    <form style="margin-top: 20px" onsubmit="return false">
-
-      <div style="width: 70%;">
-      <span v-show="nameAvailable.shown"
-            :class="nameAvailable.error?'notAvailable':'available'">{{ nameAvailable.msg }}<p/></span>
-      </div>
-      <input class="input-common" style="margin-top: 0" pattern="[0-9a-zA-Z]{5,16}" placeholder="输入用户ID (5-16位数字或字母):"
-             v-model="userId.id" required="required">
-
-      <input class="input-common" pattern="[a-zA-Z]+" required="required" placeholder="输入用户名(字母):"
-             v-model="signUpForm.username">
-      <input type="password" pattern="[0-9a-zA-Z.,'/;`~@#$%^&*()_+-=]{8,16}" required="required" class="input-common"
-             placeholder="输入密码（8-16位数字、字符或字母）:" v-model="signUpForm.password">
-      <input class="input-common" pattern="^[0-9a-zA-Z][0-9a-zA-Z.]+@[0-9a-zA-Z]+\.[a-zA-Z]+$" required="required"
-             placeholder="输入邮箱:"
-             v-model="signUpForm.email">
+    <el-form
+        ref="ruleFormRef"
+        :label-position="position"
+        :model="ruleForm"
+        style="width: 300px;display: inline-block;margin-top: 10px"
+        status-icon
+        :rules="rules"
+        label-width="80px"
+    >
 
       <div>
-        <input class="validation-code" pattern="[0-9]{6}" title="格式不对" placeholder="输入验证码" required="required"
-               v-model="signUpForm.code">
-        <button class="send-code hover-active" type="button" :disabled="!sendButtonText.clickAble" @click="sendCode">
-          {{ sendButtonText.msg }}
-        </button>
+        <h3>注册</h3>
       </div>
 
-      <button class="sign-up hover-active" type="submit" @click="register">立即注册</button>
-    </form>
+      <el-form-item label="UserID" prop="user_id">
+        <el-input v-model="ruleForm.user_id" type="text" auto-complete="off"/>
+      </el-form-item>
+      <el-form-item label="Username" prop="username">
+        <el-input v-model="ruleForm.username" type="text" auto-complete="off"/>
+      </el-form-item>
+      <el-form-item label="Email" prop="email">
+        <el-input v-model="ruleForm.email" type="text" auto-complete="on"/>
+      </el-form-item>
+      <el-form-item label="Verification" prop="code">
+        <el-input v-model="ruleForm.code" type="text" style="width: 60%;" auto-complete="off"/>
+        <el-button style="color: white;background-color: #3c8dbc;width: 40%;margin: 0"  v-show="CodeTimer.showTime" @click="sendEmail(ruleForm.email)">发送验证码</el-button>
+        <el-button style="color: white;background-color: #3c8dbc;width: 40%;margin: 0"  v-show="!CodeTimer.showTime" >{{CodeTimer.sendTime}}秒</el-button>
+      </el-form-item>
+      <el-form-item label="Password" prop="pass">
+        <el-input v-model="ruleForm.pass" type="password" autocomplete="off"/>
+      </el-form-item>
+      <div style="margin-top: 30px;margin-bottom: 30px">
+        <el-button type="primary" @click="submitForm(ruleFormRef)">注册
+        </el-button>
+        <el-button @click="resetForm(ruleFormRef)">清空</el-button>
+      </div>
+      <div>
 
-    <p></p>
-    <span style="font-size: xx-small">Tips:登录解锁全部功能</span>
+        <router-link type="string" :underline="false" :to="{path:'/register'}">没有账号？点击注册</router-link>
+      </div>
+    </el-form>
   </div>
 </template>
 
 <script>
-import {reactive, watch} from "vue";
-import axios from "axios";
-import {useRouter} from "vue-router";
+import {reactive} from "vue";
+import {ElMessage} from "element-plus";
+// import axios from "axios";
+// import {useRouter} from "vue-router";
+
+const {ref} = require("vue");
 
 
 export default {
-  name: "SignUpView",
+  name: "RegisterView",
   setup() {
+    const ruleFormRef = ref()
+    const NumberWord = "[0-9a-zA-Z]{5,16}"
+    const EmailRegex = "^[0-9a-zA-Z][0-9a-zA-Z.]+@[0-9a-zA-Z]+\\.[a-zA-Z]+$"
+    const position = ref('top')
 
-    const userId = reactive({
-      id: ""
-    })
-    const router = useRouter()
-    const sendButtonText = reactive({
-      msg: '发送验证码',
-      clickAble: true
-    })
-
-    const signUpForm = reactive({
-      // user_id: "",
-      username: "",
-      password: "",
-      email: "",
-      code: ""
-    })
-
-    const nameAvailable = reactive({
-      msg: "",
-      shown: false,
-      error: false,
-    })
-
-    let timeout = {};
-
-    // 避免抖动
-    function debounce(fn, delay = 300) {   //默认300毫秒
-      console.log(fn)
-      if (timeout[fn]) clearTimeout(timeout[fn])
-      timeout[fn] = setTimeout(() => {
-        fn()
-      }, delay)
+    const validateId = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('Please input userId'))
+      } else if (!value.match(NumberWord)) {
+        callback(new Error('Please input number or char'))
+      } else {
+        callback()
+      }
     }
 
-    function checkId() {
-      axios.get("/api/account/check?user_id=" + userId.id, {}).then(function (res) {
-        console.log(res)
-        // res.data
-        nameAvailable.shown = true
-        nameAvailable.msg = res.data.message
-        nameAvailable.error = (res.data.data === 1)
-        console.log("data=" + res.data.data + "error=" + nameAvailable.error)
-      }).catch(function (err) {
-        console.log(err)
-        nameAvailable.msg = "未知错误"
-        nameAvailable.shown = true
-        nameAvailable.error = true
+    const validateUsername = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('Please input username'))
+      } else if (!value.match(NumberWord)) {
+        callback(new Error('Please input number or char'))
+      } else {
+        callback()
+      }
+    }
+
+    const validateEmail = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('Please input email'))
+      } else if (!value.match(EmailRegex)) {
+        callback(new Error('Please input correct email address'))
+      } else {
+        callback()
+      }
+    }
+
+    const validateCode = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('Please input validation code'))
+      } else if (!value.match("[0-9]{6}")) {
+        callback(new Error('Please input correct code (six digits)'))
+      } else {
+        callback()
+      }
+    }
+
+    const validatePass = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('Please input password'))
+      } else if (!value.match(NumberWord)) {
+        callback(new Error('Please input number or char'))
+      } else {
+        callback()
+      }
+    }
+
+    const validatePass2 = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('Please input the password again'))
+      } else if (value !== ruleForm.pass) {
+        callback(new Error("Two inputs don't match!"))
+      } else {
+        callback()
+      }
+    }
+
+    const ruleForm = reactive({
+      user_id: '',
+      username: '',
+      email: '',
+      code: '',
+      pass: '',
+      checkPass: ''
+    })
+
+    const rules = reactive({
+      user_id: [{validator: validateId, trigger: 'blur'}],
+      username: [{validator: validateUsername, trigger: 'blur'}],
+      email: [{validator: validateEmail, trigger: 'blur'}],
+      code: [{validator: validateCode, trigger: 'blur'}],
+      pass: [{validator: validatePass, trigger: 'blur'}],
+      checkPass: [{validator: validatePass2, trigger: 'blur'}],
+    })
+
+    const CodeTimer = reactive({
+      showTime:true,
+      sendTime:'',
+      timer:null
+    })
+
+    const sendEmail = (email)=>{
+      const TIME_COUNT = 300; //  更改倒计时时间
+      if (!CodeTimer.timer) {
+        // 真实发送验证码逻辑
+        console.log('sendCode to ',email)
+        ElMessage("验证码已发送至您的邮箱")
+        CodeTimer.sendTime = TIME_COUNT;
+        CodeTimer.showTime = false;
+        CodeTimer.timer = setInterval(() => {
+          if (CodeTimer.sendTime > 0 && CodeTimer.sendTime <= TIME_COUNT) {
+            CodeTimer.sendTime--;
+          } else {
+            CodeTimer.showTime = true;
+            clearInterval(CodeTimer.timer); // 清除定时器
+            CodeTimer.timer = null;
+          }
+        }, 1000);
+      }
+    }
+
+
+    const submitForm = (formEl) => {
+      if (!formEl) return
+      formEl.validate((valid) => {
+        if (valid) {
+          console.log('submit!')
+        } else {
+          console.log('error submit!')
+          return false
+        }
       })
     }
 
-    watch([userId], () => {
-      console.log("watch")
-      debounce(checkId, 300)
-    })
-
-    const sendCode = () => {
-      console.log("sendCode")
-      const apply = () => {
-        axios.get("/api/account/apply_code", {
-          params: {
-            user_id: userId.id,
-            email: signUpForm.email,
-            operation: 'register'
-          }
-        }).then((res) => {
-          sendButtonText.msg = res.data.message
-          sendButtonText.clickAble = false
-          setTimeout(() => {
-            sendButtonText.clickAble = true
-          }, 5 * 60 * 1000)  // 请求太频繁
-        }).catch((err) => {
-          sendButtonText.msg = err.data.message
-          sendButtonText.clickAble = false
-          setTimeout(() => {
-            sendButtonText.clickAble = true
-          }, 5 * 60 * 1000)  // 请求太频繁
-        })
-      }
-      debounce(apply)
+    const resetForm = (formEl) => {
+      if (!formEl) return
+      formEl.resetFields()
     }
-
-    const register = () => {
-      const data = {
-        user_id: userId.id,
-        username: signUpForm.username,
-        email: signUpForm.email,
-        password: signUpForm.password,
-        validation_code: signUpForm.code
-      }
-      for (let dataKey in data) {
-        if (data[dataKey].isEmpty) {
-          return
-        }
-      }
-      let json = JSON.stringify(data)
-      var config = {
-        method: 'post',
-        url: '/api/account/register',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        data: json
-      };
-      const apply = () => {
-        axios(config)
-            .then((res) => {
-              console.log(res)
-              if (res.data.code === 200) {
-                // 跳转登录
-                router.push({name: '/login', query: {id: userId.id}})
-              } else {
-                alert(res.data.message)
-              }
-            })
-            .catch((err) => {
-              console.log(err)
-              alert(err)
-            })
-      }
-      debounce(apply, 300)
-    }
-
     return {
-      userId,
-      signUpForm,
-      sendButtonText,
-      nameAvailable,
-      debounce,
-      checkIdWithDebounce: checkId,
-      sendCode,
-      register
+      position,
+      resetForm,
+      submitForm,
+      rules,
+      ruleForm,
+      ruleFormRef,
+      // 验证码逻辑
+      CodeTimer,
+      sendEmail
     }
   }
 }
@@ -190,7 +207,7 @@ div.sign_in_box {
   text-align: center;
   background: #42b983;
   width: 30%;
-  height: 450px;
+  /*height: 500px;*/
   padding: 20px 20px;
   border-radius: 5px;
   /*margin-left: 15px;*/

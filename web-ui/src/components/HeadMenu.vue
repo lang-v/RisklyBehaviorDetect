@@ -8,7 +8,7 @@
         text-color="#fff"
         active-text-color="#ffd04b"
         @select="onPageChanged">
-      <el-menu-item style="margin-left: 100px" index="/">首页</el-menu-item>
+      <el-menu-item style="margin-left: 100px" index="home">首页</el-menu-item>
       <el-menu-item index="project">项目管理</el-menu-item>
       <el-menu-item index="log">系统日志</el-menu-item>
       <el-menu-item index="account">账户管理</el-menu-item>
