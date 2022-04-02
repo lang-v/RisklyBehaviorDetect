@@ -6,7 +6,7 @@
         :model="ruleForm"
         style="width: 300px;display: inline-block;margin-top: 10px"
         status-icon
-        :rules="rules"
+        :rules="rulers"
         label-width="80px"
     >
 
@@ -20,78 +20,140 @@
       <el-form-item label="Username" prop="username">
         <el-input v-model="ruleForm.username" type="text" auto-complete="off"/>
       </el-form-item>
+      <el-form-item label="Password" prop="pass">
+        <el-input v-model="ruleForm.pass" type="password" autocomplete="off"/>
+      </el-form-item>
+      <el-form-item label="Password again" prop="checkPass">
+        <el-input v-model="ruleForm.checkPass" type="password" autocomplete="off"/>
+      </el-form-item>
       <el-form-item label="Email" prop="email">
         <el-input v-model="ruleForm.email" type="text" auto-complete="on"/>
       </el-form-item>
       <el-form-item label="Verification" prop="code">
         <el-input v-model="ruleForm.code" type="text" style="width: 60%;" auto-complete="off"/>
-        <el-button style="color: white;background-color: #3c8dbc;width: 40%;margin: 0"  v-show="CodeTimer.showTime" @click="sendEmail(ruleForm.email)">发送验证码</el-button>
-        <el-button style="color: white;background-color: #3c8dbc;width: 40%;margin: 0"  v-show="!CodeTimer.showTime" >{{CodeTimer.sendTime}}秒</el-button>
-      </el-form-item>
-      <el-form-item label="Password" prop="pass">
-        <el-input v-model="ruleForm.pass" type="password" autocomplete="off"/>
+        <el-button style="color: white;background-color: #3c8dbc;width: 40%;margin: 0" v-show="showTime"
+                   @click="sendEmail(ruleForm.email)">发送验证码
+        </el-button>
+        <el-button style="color: white;background-color: #3E414E;width: 40%;margin: 0" v-show="!showTime">
+          {{ sendTime }}秒
+        </el-button>
       </el-form-item>
       <div style="margin-top: 30px;margin-bottom: 30px">
         <el-button type="primary" @click="submitForm(ruleFormRef)">注册
         </el-button>
-        <el-button @click="resetForm(ruleFormRef)">清空</el-button>
+        <el-button @click="this.resetForm(ruleFormRef)">清空</el-button>
       </div>
       <div>
 
-        <router-link type="string" :underline="false" :to="{path:'/register'}">没有账号？点击注册</router-link>
+        <router-link type="string" :underline="false" :to="{path:'/register'}">已有账号，点击登录</router-link>
       </div>
     </el-form>
   </div>
 </template>
 
 <script>
-import {reactive} from "vue";
-import {ElMessage} from "element-plus";
-// import axios from "axios";
-// import {useRouter} from "vue-router";
-
 const {ref} = require("vue");
+const {ElMessage} = require("element-plus");
+const axios = require("axios");
+const {useRouter} = require("vue-router");
 
 
+let timeout;
 export default {
   name: "RegisterView",
+  data(){
+    const router = useRouter()
+    // setTimeout(()=>{
+    //   router.push({name: 'login'})
+    // },1000)
+
+    return {
+      position:ref('top'),
+      ruleForm:{
+        user_id: '',
+        username: '',
+        email: '',
+        code: '',
+        pass: '',
+        checkPass: ''
+      },
+      rulers:{
+        user_id: [{validator: this.validateId, trigger: 'blur'}],
+        username: [{validator: this.validateUsername, trigger: 'blur'}],
+        email: [{validator: this.validateEmail, trigger: 'blur'}],
+        code: [{validator: this.validateCode, trigger: 'blur'}],
+        pass: [{validator: this.validatePass, trigger: 'blur'}],
+        checkPass: [{validator: this.validatePass2, trigger: 'blur'}],
+      },
+      NumberWord : "[0-9a-zA-Z]{5,16}",
+      EmailRegex : "^[0-9a-zA-Z][0-9a-zA-Z.]+@[0-9a-zA-Z]+\\.[a-zA-Z]+$",
+      showTime: true,
+      sendTime: '',
+      timer: null,
+      router
+    }
+  },
   setup() {
     const ruleFormRef = ref()
-    const NumberWord = "[0-9a-zA-Z]{5,16}"
-    const EmailRegex = "^[0-9a-zA-Z][0-9a-zA-Z.]+@[0-9a-zA-Z]+\\.[a-zA-Z]+$"
-    const position = ref('top')
-
-    const validateId = (rule, value, callback) => {
+    return {ruleFormRef}
+  },
+  methods: {
+    // 解决按钮快速点击时出现的抖动现象
+    debounce(fn, delay = 300) {   //默认300毫秒
+      console.log(fn)
+      if (timeout[fn]) clearTimeout(timeout[fn])
+      timeout[fn] = setTimeout(() => {
+        fn()
+      }, delay)
+    },
+    validateId(rule, value, callback) {
       if (value === '') {
         callback(new Error('Please input userId'))
-      } else if (!value.match(NumberWord)) {
+      } else if (!value.match(this.NumberWord)) {
         callback(new Error('Please input number or char'))
       } else {
-        callback()
+        axios.get("/api/account/check?user_id=" + this.ruleForm.user_id, {})
+        .then(function (res){
+          if (res.data.data === 0)
+            callback()
+          else
+            callback(new Error('ID已存在'))
+        })
+        .catch(function (){
+          callback(new Error('未知错误'))
+        })
       }
-    }
-
-    const validateUsername = (rule, value, callback) => {
+    },
+    validateUsername(rule, value, callback){
       if (value === '') {
         callback(new Error('Please input username'))
-      } else if (!value.match(NumberWord)) {
+      } else if (!value.match(this.NumberWord)) {
         callback(new Error('Please input number or char'))
       } else {
         callback()
       }
-    }
+    },
 
-    const validateEmail = (rule, value, callback) => {
+    validateEmail(rule, value, callback){
       if (value === '') {
         callback(new Error('Please input email'))
-      } else if (!value.match(EmailRegex)) {
+      } else if (!value.match(this.EmailRegex)) {
         callback(new Error('Please input correct email address'))
       } else {
-        callback()
+        axios.get("/api/account/check_email?email=" + this.ruleForm.email, {})
+            .then(function (res){
+              if (res.data.data === 0)
+                callback()
+              else
+                callback(new Error('邮箱已注册'))
+            })
+            .catch(function (){
+              callback(new Error('未知错误'))
+            })
       }
-    }
+    },
 
-    const validateCode = (rule, value, callback) => {
+    validateCode (rule, value, callback){
       if (value === '') {
         callback(new Error('Please input validation code'))
       } else if (!value.match("[0-9]{6}")) {
@@ -99,99 +161,110 @@ export default {
       } else {
         callback()
       }
-    }
+    },
 
-    const validatePass = (rule, value, callback) => {
+    validatePass  (rule, value, callback) {
       if (value === '') {
         callback(new Error('Please input password'))
-      } else if (!value.match(NumberWord)) {
+      } else if (!value.match(this.NumberWord)) {
         callback(new Error('Please input number or char'))
       } else {
         callback()
       }
-    }
+    },
 
-    const validatePass2 = (rule, value, callback) => {
+    validatePass2  (rule, value, callback) {
       if (value === '') {
         callback(new Error('Please input the password again'))
-      } else if (value !== ruleForm.pass) {
+      } else if (value !== this.ruleForm.pass) {
         callback(new Error("Two inputs don't match!"))
       } else {
         callback()
       }
-    }
+    },
 
-    const ruleForm = reactive({
-      user_id: '',
-      username: '',
-      email: '',
-      code: '',
-      pass: '',
-      checkPass: ''
-    })
-
-    const rules = reactive({
-      user_id: [{validator: validateId, trigger: 'blur'}],
-      username: [{validator: validateUsername, trigger: 'blur'}],
-      email: [{validator: validateEmail, trigger: 'blur'}],
-      code: [{validator: validateCode, trigger: 'blur'}],
-      pass: [{validator: validatePass, trigger: 'blur'}],
-      checkPass: [{validator: validatePass2, trigger: 'blur'}],
-    })
-
-    const CodeTimer = reactive({
-      showTime:true,
-      sendTime:'',
-      timer:null
-    })
-
-    const sendEmail = (email)=>{
-      const TIME_COUNT = 300; //  更改倒计时时间
-      if (!CodeTimer.timer) {
+    sendEmail (email) {
+      const TIME_COUNT = 60; //  更改倒计时时间
+      if (!this.timer) {
         // 真实发送验证码逻辑
-        console.log('sendCode to ',email)
-        ElMessage("验证码已发送至您的邮箱")
-        CodeTimer.sendTime = TIME_COUNT;
-        CodeTimer.showTime = false;
-        CodeTimer.timer = setInterval(() => {
-          if (CodeTimer.sendTime > 0 && CodeTimer.sendTime <= TIME_COUNT) {
-            CodeTimer.sendTime--;
-          } else {
-            CodeTimer.showTime = true;
-            clearInterval(CodeTimer.timer); // 清除定时器
-            CodeTimer.timer = null;
+        console.log('sendCode to ', email)
+        axios.get("/api/account/apply_code", {
+          params: {
+            user_id: this.ruleForm.user_id,
+            email: this.ruleForm.email,
+            operation: 'register'
           }
-        }, 1000);
+        }).then(function (res){
+          if (res.data.code === 200) {
+            ElMessage("验证码已发送至您的邮箱,验证码5分钟内有效")
+            // 发送成功开始倒计时
+            this.sendTime = TIME_COUNT;
+            this.showTime = false;
+            this.timer = setInterval(() => {
+              if (this.sendTime > 0 && this.sendTime <= TIME_COUNT) {
+                this.sendTime--;
+              } else {
+                this.showTime = true;
+                clearInterval(this.timer); // 清除定时器
+                this.timer = null;
+              }
+            }, 1000);
+          }else {
+            ElMessage(res.data.message)
+          }
+        }).catch(function () {
+          ElMessage('未知错误')
+        })
       }
-    }
+    },
 
-
-    const submitForm = (formEl) => {
+    submitForm (formEl) {
       if (!formEl) return
       formEl.validate((valid) => {
         if (valid) {
           console.log('submit!')
+          const data = {
+            user_id: this.ruleForm.user_id,
+            username: this.ruleForm.username,
+            email: this.ruleForm.email,
+            password: this.ruleForm.pass,
+            validation_code: this.ruleForm.code
+          }
+          let json = JSON.stringify(data)
+          const config = {
+            method: 'post',
+            url: '/api/account/register',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            data: json
+          };
+          axios(config)
+              .then((res) => {
+                console.log(res)
+                if (res.data.code === 200) {
+                  // 跳转登录
+                  this.router.push({name: 'login'})
+                } else {
+                  ElMessage(res.data.message)
+                }
+              })
+              .catch((err) => {
+                console.log(err)
+                ElMessage('未知错误')
+              })
+
         } else {
+          // 表单校验失败
           console.log('error submit!')
           return false
         }
       })
-    }
+    },
 
-    const resetForm = (formEl) => {
+    resetForm (formEl) {
       if (!formEl) return
       formEl.resetFields()
-    }
-    return {
-      position,
-      resetForm,
-      submitForm,
-      rules,
-      ruleForm,
-      ruleFormRef,
-      // 验证码逻辑
-      CodeTimer,
-      sendEmail
     }
   }
 }
@@ -206,94 +279,11 @@ div.sign_in_box {
   display: table-cell; /**/
   text-align: center;
   background: #42b983;
-  width: 30%;
+  /*width: 30%;*/
   /*height: 500px;*/
-  padding: 20px 20px;
+  padding: 20px 40px;
   border-radius: 5px;
   /*margin-left: 15px;*/
   box-shadow: darkgrey 10px 10px 15px 5px
-}
-
-input.input-common {
-  margin-top: 20px;
-  box-sizing: border-box;
-  border-radius: 4px;
-  border-bottom-style: none;
-  border-color: transparent;
-  width: 70%;
-  height: 30px;
-  outline: none;
-}
-
-input.validation-code {
-  vertical-align: middle;
-  margin-right: 0;
-  box-sizing: border-box;
-  border-bottom-left-radius: 4px;
-  border-top-left-radius: 4px;
-  border-bottom-style: none;
-  border-color: transparent;
-  width: 45%;
-  padding: 0;
-  margin-top: 20px;
-  height: 30px;
-  outline: none;
-}
-
-button.send-code {
-  padding: 0;
-  font-family: Apple, sans-serif;
-  font-style: normal;
-  margin-top: 20px;
-  margin-left: 0;
-  vertical-align: middle;
-  box-sizing: content-box;
-  background-color: deepskyblue;
-  color: white;
-  border-bottom-right-radius: 4px;
-  border-top-right-radius: 4px;
-  border: none transparent;
-  width: 25%;
-  line-height: 100%;
-  height: 30px;
-  outline: none;
-}
-
-button.sign-up {
-  margin-top: 40px;
-  border-width: 0;
-  background-color: deepskyblue;
-  width: 40%;
-  height: 40px;
-  border-radius: 6px;
-  color: white;
-  font-size: large;
-}
-
-button.hover-active:hover {
-  background-color: cornflowerblue;
-  color: lightgray;
-}
-
-button.hover-active:active {
-  background-color: blue;
-  color: lightgray;
-}
-
-button.hover-active:disabled {
-  color: white;
-  background-color: darkgrey;
-}
-
-.notAvailable {
-  width: 70%;
-  font-size: smaller;
-  color: orangered;
-}
-
-.available {
-  width: 70%;
-  font-size: smaller;
-  color: mediumspringgreen;
 }
 </style>

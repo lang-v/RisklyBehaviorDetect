@@ -128,7 +128,7 @@ div.login_box {
   background: #42b983;
   width: 350px;
   height: 300px;
-  padding: 20px;
+  padding: 20px 40px;
   border-radius: 5px;
   /*margin-left: 15px;*/
   box-shadow: darkgrey 10px 10px 15px 5px
