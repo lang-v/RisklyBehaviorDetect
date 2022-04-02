@@ -1,5 +1,8 @@
 <template>
-  <div class="sign_in_box" id="signup">
+  <div class="sign_in_box" id="signup"
+       v-loading="loading.on"
+       :element-loading-text="loading.text"
+       element-loading-background="rgba(0, 0, 0, 0.8)">
     <el-form
         ref="ruleFormRef"
         :label-position="position"
@@ -45,7 +48,7 @@
       </div>
       <div>
 
-        <router-link type="string" :underline="false" :to="{path:'/register'}">已有账号，点击登录</router-link>
+        <router-link type="string" :underline="false" :to="{path:'/login'}">已有账号，点击登录</router-link>
       </div>
     </el-form>
   </div>
@@ -55,18 +58,12 @@
 const {ref} = require("vue");
 const {ElMessage} = require("element-plus");
 const axios = require("axios");
-const {useRouter} = require("vue-router");
 
 
 let timeout;
 export default {
   name: "RegisterView",
   data(){
-    const router = useRouter()
-    // setTimeout(()=>{
-    //   router.push({name: 'login'})
-    // },1000)
-
     return {
       position:ref('top'),
       ruleForm:{
@@ -90,7 +87,10 @@ export default {
       showTime: true,
       sendTime: '',
       timer: null,
-      router
+      loading:{
+        on:false,
+        text:''
+      }
     }
   },
   setup() {
@@ -187,7 +187,17 @@ export default {
       const TIME_COUNT = 60; //  更改倒计时时间
       if (!this.timer) {
         // 真实发送验证码逻辑
+        const that = this
+
+        if (that.ruleForm.email === "" || !that.ruleForm.email.match(that.EmailRegex)){
+          ElMessage("请检查邮箱格式")
+          return
+        }
         console.log('sendCode to ', email)
+
+        that.loading.text = "正在发送..."
+        that.loading.on = true
+
         axios.get("/api/account/apply_code", {
           params: {
             user_id: this.ruleForm.user_id,
@@ -197,6 +207,7 @@ export default {
         }).then(function (res){
           if (res.data.code === 200) {
             ElMessage("验证码已发送至您的邮箱,验证码5分钟内有效")
+            that.loading.on = false
             // 发送成功开始倒计时
             this.sendTime = TIME_COUNT;
             this.showTime = false;
@@ -211,18 +222,23 @@ export default {
             }, 1000);
           }else {
             ElMessage(res.data.message)
+            that.loading.on = false
           }
         }).catch(function () {
           ElMessage('未知错误')
+          that.loading.on = false
         })
       }
     },
 
     submitForm (formEl) {
       if (!formEl) return
+      const that = this
       formEl.validate((valid) => {
         if (valid) {
           console.log('submit!')
+          that.loading.text = "正在登录..."
+          that.loading.on = true
           const data = {
             user_id: this.ruleForm.user_id,
             username: this.ruleForm.username,
@@ -242,15 +258,17 @@ export default {
           axios(config)
               .then((res) => {
                 console.log(res)
+                this.loading.on = false
                 if (res.data.code === 200) {
                   // 跳转登录
-                  this.router.push({name: 'login'})
+                  that.$router.push({name: 'login'})
                 } else {
                   ElMessage(res.data.message)
                 }
               })
               .catch((err) => {
                 console.log(err)
+                that.loading.on = true
                 ElMessage('未知错误')
               })
 

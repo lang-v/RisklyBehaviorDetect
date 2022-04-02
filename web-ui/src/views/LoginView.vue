@@ -1,42 +1,46 @@
 <template>
-    <div class="login_box" id="login">
-      <el-form
-          ref="ruleFormRef"
-          :model="ruleForm"
-          :label-position="position"
-          style="width: 300px;display: inline-block;margin-top: 10px"
-          status-icon
-          :rules="rules"
-          label-width="80px"
-      >
-        <div>
-          <h3>登录</h3>
-        </div>
+  <div class="login_box" id="login" v-loading="loading.on"
+       element-loading-text="正在登录..."
+       element-loading-background="rgba(0, 0, 0, 0.8)">
+    <el-form
+        ref="ruleFormRef"
+        :model="ruleForm"
+        :label-position="position"
+        style="width: 300px;display: inline-block;margin-top: 10px"
+        status-icon
+        :rules="rules"
+        label-width="80px"
+    >
+      <div>
+        <h3>登录</h3>
+      </div>
 
-        <el-form-item label="UserID" prop="user_id">
-          <el-input v-model="ruleForm.user_id" type="text" auto-complete="off"/>
-        </el-form-item>
-        <el-form-item label="Password" prop="pass">
-          <el-input v-model="ruleForm.pass" type="password" autocomplete="off"/>
-        </el-form-item>
-        <div style="margin-top: 30px;margin-bottom: 30px">
-          <el-button type="primary" @click="submitForm(ruleFormRef)"
-          >登录
-          </el-button>
-          <el-button @click="resetForm(ruleFormRef)">清空</el-button>
-        </div>
-        <div>
+      <el-form-item label="UserID" prop="user_id">
+        <el-input v-model="ruleForm.user_id" type="text" auto-complete="off"/>
+      </el-form-item>
+      <el-form-item label="Password" prop="pass">
+        <el-input v-model="ruleForm.pass" type="password" autocomplete="off"/>
+      </el-form-item>
+      <div style="margin-top: 30px;margin-bottom: 30px">
+        <el-button type="primary" @click="submitForm(ruleFormRef)">登录
+        </el-button>
+        <el-button @click="resetForm(ruleFormRef)">清空</el-button>
+      </div>
+      <div>
 
         <router-link type="string" :underline="false" :to="{path:'/register'}">没有账号？点击注册</router-link>
-        </div>
+      </div>
 
-      </el-form>
-    </div>
+    </el-form>
+  </div>
 
 </template>
 
 <script>
 import {reactive} from "vue";
+import axios from "axios";
+import {ElMessage} from "element-plus";
+import router from "@/router";
 
 const {ref} = require("vue");
 
@@ -48,6 +52,9 @@ export default {
   setup() {
     const ruleFormRef = ref()
     const NumberWord = "[0-9a-zA-Z]{5,16}"
+    let loading = reactive({
+      on: false
+    })
 
     const validateId = (rule, value, callback) => {
       if (value === '') {
@@ -69,15 +76,6 @@ export default {
         callback()
       }
     }
-    // const validatePass2 = (rule, value, callback) => {
-    //   if (value === '') {
-    //     callback(new Error('Please input the password again'))
-    //   } else if (value !== ruleForm.pass) {
-    //     callback(new Error("Two inputs don't match!"))
-    //   } else {
-    //     callback()
-    //   }
-    // }
 
     const ruleForm = reactive({
       user_id: '',
@@ -94,8 +92,39 @@ export default {
       formEl.validate((valid) => {
         if (valid) {
           console.log('submit!')
+          loading.on = true
+          const data = {
+            user_id: ruleForm.user_id,
+            password: ruleForm.pass,
+            timestamp: new Date().getTime()
+          }
+          let json = JSON.stringify(data)
+          const config = {
+            method: 'post',
+            url: '/api/account/login',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            data: json
+          };
+          axios(config).then(function (res) {
+            if (res.data.code === 200) {
+              ElMessage('登录成功')
+              console.log(res.data.message)
+              router.push('home')
+            } else {
+              console.log(res)
+              ElMessage(res.data.message)
+            }
+            loading.on = false
+          }).catch(function (err) {
+            console.log(err)
+            loading.on = false
+            ElMessage('未知错误')
+          })
         } else {
           console.log('error submit!')
+          loading.on = false
           return false
         }
       })
@@ -111,7 +140,8 @@ export default {
       submitForm,
       rules,
       ruleForm,
-      ruleFormRef
+      ruleFormRef,
+      loading
     }
   }
 }

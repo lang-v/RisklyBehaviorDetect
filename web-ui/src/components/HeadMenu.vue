@@ -1,20 +1,21 @@
 <template>
   <div>
     <el-menu
-        :default-active="currentPageInfo.index"
+        :default-active="defaultActive"
         class="el-menu-demo"
         mode="horizontal"
         background-color="#545c64"
         text-color="#fff"
+        :ref="headerRef"
         active-text-color="#ffd04b"
-        @select="onPageChanged">
+        @select="changePage">
       <el-menu-item style="margin-left: 100px" index="home">首页</el-menu-item>
       <el-menu-item index="project">项目管理</el-menu-item>
       <el-menu-item index="log">系统日志</el-menu-item>
-      <el-menu-item index="account">账户管理</el-menu-item>
+      <el-menu-item index="account|login|register">账户管理</el-menu-item>
       <div class="hp">
         <el-dropdown trigger="contextmenu">
-        <el-avatar alt="None">{{ userinfo.username }}</el-avatar>
+          <el-avatar alt="None">{{ this.$userinfo.username }}</el-avatar>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item @click="logout">退出登录</el-dropdown-item>
@@ -27,33 +28,36 @@
 </template>
 
 <script>
-// import {useRouter} from "vue-router";
+import {ref} from "vue";
+import {ElMessage} from "element-plus";
 
 export default {
   name: "HeadMenu",
-  props:{
-    currentPageInfo:Object,
-    userinfo:Object,
-    logout:Function,
-    onPageChanged:Function
+
+  data() {
+    return {
+      defaultActive: 'home',
+      headerRef: ref()
+    }
   },
-
-  setup() {
-
-    // const menuIndexes = ['home', 'project', 'event_log', 'account'];
-    // console.log(menuIndexes)
-    // let router = useRouter()
-    // console.log(router)
-    // console.log(this.router)
-    // var currentPath = this.$router.path
-
-    // const activeIndex2 = ref(this.props.path())
-    // const handleSelect = (key) => {
-    //   // 页面选中
-    //   this.props.onPageChanged(key)
-    //   console.log("选中菜单：" + key)
-    // }
-    // return {handleSelect}
+  methods: {
+    changePage(index) {
+      let hasLogin = this.$userinfo.login
+      let to = index
+      // 登录后才解锁访问权限
+      if (!hasLogin) {
+        if (index !== 'home') {
+          to = 'login'
+        }
+        this.$router.push(to)
+        ElMessage("请先登录")
+      }else {
+        this.$router.push(to)
+      }
+    },
+    logout(){
+      // 清除cookie
+    }
   }
 }
 </script>
