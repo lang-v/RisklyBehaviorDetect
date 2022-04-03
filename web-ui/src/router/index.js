@@ -25,7 +25,7 @@ const routes = [
       {
         path:'analyse',
         // name:'analyse',
-        component: () => import('../views/ProjectView')
+        component: () => import('../views/log/AnalyseView')
       }
     ]
   },

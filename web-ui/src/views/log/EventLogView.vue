@@ -7,7 +7,7 @@
       background-color="#545c64"
       class="el-menu-vertical-demo"
       text-color="#fff"
-      style="width: 13%;height: 100%;"
+      style="width: 10%;height: 100%;"
       :router="$router"
       @open="handleOpen"
       @close="handleClose"
