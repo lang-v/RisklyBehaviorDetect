@@ -9,10 +9,13 @@
         :ref="headerRef"
         active-text-color="#ffd04b"
         @select="changePage">
-      <el-menu-item style="margin-left: 100px" index="home">首页</el-menu-item>
-      <el-menu-item index="project">项目管理</el-menu-item>
-      <el-menu-item index="log">系统日志</el-menu-item>
-      <el-menu-item index="account">账户管理</el-menu-item>
+      <div style="margin-top: 15px;color: white">
+        <span style="font-family: 华文行楷,system-ui;font-size: xx-large">高空危险行为预警系统</span>
+      </div>
+      <el-menu-item style="margin-left: 20px" index="/home">首页</el-menu-item>
+      <el-menu-item index="/project">项目管理</el-menu-item>
+      <el-menu-item index="/log">系统日志</el-menu-item>
+      <el-menu-item index="/account">账户管理</el-menu-item>
       <div class="hp">
         <el-dropdown :trigger="this.$userinfo.hasLogin ? 'hover' : 'contextmenu'" >
           <el-avatar >{{ this.$userinfo.username }}</el-avatar>
@@ -38,13 +41,6 @@ export default {
     const globalProperties = getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
     return {globalProperties}
   },
-  watch:{
-    // 'this.$username': {
-    //   handler(nv) {
-    //
-    //   }
-    // }
-  },
   data() {
     return {
       defaultActive: 'home',
@@ -53,13 +49,12 @@ export default {
   },
   methods: {
     changePage(index) {
-      console.log(this.$userinfo)
       let hasLogin = this.$userinfo.hasLogin
       let to = index
       // 登录后才解锁访问权限
       if (!hasLogin) {
-        if (index !== 'home') {
-          to = 'login'
+        if (index !== '/home') {
+          to = '/login'
           this.$router.push(to)
           ElMessage("请先登录")
 
@@ -74,6 +69,8 @@ export default {
       // 清除cookie
       ck.clearCookies()
       ck.refreshCookies(this.globalProperties)
+      // 退出直接切到主页
+      this.$router.push('/home')
     }
   }
 }

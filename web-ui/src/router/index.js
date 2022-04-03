@@ -15,7 +15,19 @@ const routes = [
   {
     path: '/log',
     name: 'log',
-    component: () => import('../views/EventLogView')
+    component: () => import('../views/log/EventLogView'),
+    children:[
+      {
+        path:'retrieval',
+        name:'retrieval',
+        component: () => import('../views/log/RetrievalView')
+      },
+      {
+        path:'analyse',
+        // name:'analyse',
+        component: () => import('../views/ProjectView')
+      }
+    ]
   },
   {
     path: '/account',
