@@ -41,8 +41,9 @@ import {reactive} from "vue";
 import axios from "axios";
 import {ElMessage} from "element-plus";
 import router from "@/router";
+import ck from "@/cookies/utils";
 
-const {ref} = require("vue");
+const {ref, getCurrentInstance} = require("vue");
 
 export default {
   name: "LoginView",
@@ -50,6 +51,8 @@ export default {
     id: String
   },
   setup() {
+    const globalProperties = getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
+
     const ruleFormRef = ref()
     const NumberWord = "[0-9a-zA-Z]{5,16}"
     let loading = reactive({
@@ -93,6 +96,7 @@ export default {
         if (valid) {
           console.log('submit!')
           loading.on = true
+          // const that = this
           const data = {
             user_id: ruleForm.user_id,
             password: ruleForm.pass,
@@ -110,6 +114,8 @@ export default {
           axios(config).then(function (res) {
             if (res.data.code === 200) {
               ElMessage('登录成功')
+              ck.saveCookies(res.data.data.username,res.data.data.token,true)
+              ck.refreshCookies(globalProperties)
               console.log(res.data.message)
               router.push('home')
             } else {

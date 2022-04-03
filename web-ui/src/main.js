@@ -5,17 +5,28 @@ import store from './store'
 import axios from "axios";
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import ck from "@/cookies/utils";
+// import VueCookies from 'vue3-cookies'
+// import VueCookies from 'vue-cookies'
 
 const app = createApp(App);
 app.config.globalProperties.$axios=axios;
+// app.config.globalProperties.$cookies = VueCookies
 
-let userinfo = reactive({
-    username: "None",
-    userId: "",
-    email: "",
-    token: "",
-    login:false
+
+// 每次初始化就从cookies中载入
+// const key = 'userinfo'
+// let userinfo = this.$cookies.get(key)
+app.config.globalProperties.$userinfo = reactive({
+    username:'None',
+    token:'',
+    hasLogin:'false'
 })
-app.config.globalProperties.$userinfo = userinfo
+// app.config.globalProperties.$token = ''
+app.config.globalProperties.$ck = ck
+ck.refreshCookies(app.config.globalProperties)
 
 app.use(store).use(ElementPlus).use(router).mount('#app');
+
+
+
