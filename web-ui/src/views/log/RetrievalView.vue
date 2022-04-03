@@ -47,7 +47,7 @@
         <el-table-column prop="createTime" label="触发时间"/>
       </el-table>
       <el-pagination style="margin-left: 45%;margin-top: 100px"
-                     page-size="10"
+                     :page-size="10"
                      :current-page="currentPage.value"
                      :total="data.length"
                      :hide-on-single-page="true"
@@ -100,16 +100,32 @@ export default {
     onRetrieval() {
       // 查询日志
       console.log(this.filters, this.timeRange)
+
       this.loading.on = true
       ElMessage('查询中')
 
-      const body = {
-        token: this.$userinfo.token
+      let body = {}
+      let url_path = ''
+      if(this.filters.length === 0 || this.timeRange === {}) {
+        url_path = '/api/log/all'
+        body = {
+          token: this.$userinfo.token,
+        }
+      } else {
+        url_path = '/api/log/filter'
+        body = {
+          token: this.$userinfo.token,
+          type: this.filters,
+          timeRange: {
+            start: new Date(this.timeRange[0]).getTime(),
+            end: new Date(this.timeRange[1]).getTime()
+          }
+        }
       }
       const json = JSON.stringify(body)
       let config = {
         method: 'post',
-        url: '/api/log/all',
+        url: url_path,
         headers: {
           'Content-Type': 'application/json'
         },
