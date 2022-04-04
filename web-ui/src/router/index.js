@@ -10,7 +10,32 @@ const routes = [
   {
     path: '/project',
     name: 'project',
-    component: () => import('../views/ProjectView')
+    component: () => import('../views/project/ProjectView'),
+    children: [
+      {
+        path:'list',
+        name:'list',
+        component:() => import('../views/project/ListView')
+      },
+      {
+        path: 'create',
+        name: 'create',
+        component:() => import('../views/project/CreateView')
+      }
+    ]
+  },
+  {
+    path:'/project_detail',
+    name:'project_detail',
+    component: () => import('../views/project/detail/DetailView'),
+    children: [
+      {
+        path:'detect',
+        name: 'detect',
+        component: () => import('../views/project/detail/DynamicDetect')
+      }
+    ]
+
   },
   {
     path: '/log',
@@ -32,17 +57,17 @@ const routes = [
   {
     path: '/account',
     name: 'account',
-    component: () => import('../views/AccountView')
+    component: () => import('../views/account/AccountView')
   },
   {
     path: '/register',
     name: 'register',
-    component: () => import('../views/RegisterView')
+    component: () => import('../views/account/RegisterView')
   },
   {
     path: '/login',
     name: 'login',
-    component: ()=> import('../views/LoginView')
+    component: ()=> import('../views/account/LoginView')
   }
 ]
 

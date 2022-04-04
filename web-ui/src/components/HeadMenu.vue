@@ -1,13 +1,11 @@
 <template>
   <div>
     <el-menu
-        :default-active="defaultActive"
         class="el-menu-demo"
         mode="horizontal"
         background-color="#545c64"
         text-color="#fff"
         :ref="headerRef"
-        active-text-color="#ffd04b"
         @select="changePage">
       <div style="margin-top: 15px;color: white">
         <span style="font-family: 华文行楷,system-ui;font-size: xx-large">高空危险行为预警系统</span>

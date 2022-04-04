@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <Header />
-    <router-view/>
+    <Header style="width: 100%;"/>
+    <router-view />
   </div>
 </template>
 

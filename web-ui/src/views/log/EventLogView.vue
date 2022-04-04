@@ -7,7 +7,7 @@
       background-color="#545c64"
       class="el-menu-vertical-demo"
       text-color="#fff"
-      style="width: 10%;height: 100%;"
+      style="height: 100%;"
       :router="$router"
       @open="handleOpen"
       @close="handleClose"
@@ -26,7 +26,8 @@
       <span>日志分析</span>
     </el-menu-item>
   </el-menu>
-  <router-view style="float: right;width: 84%;height: 100%;padding: 20px"/>
+
+  <router-view style="float: right;width: 84%;height: 80%;padding: 20px"/>
   </div>
 
 </template>

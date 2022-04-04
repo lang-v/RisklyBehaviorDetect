@@ -6,12 +6,12 @@ import axios from "axios";
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import ck from "@/cookies/utils";
-// import VueCookies from 'vue3-cookies'
-// import VueCookies from 'vue-cookies'
+
+import VideoPlayer from 'vue-video-player'
+require('vue-video-player/src/custom-theme.css')
 
 const app = createApp(App);
 app.config.globalProperties.$axios=axios;
-// app.config.globalProperties.$cookies = VueCookies
 
 
 // 每次初始化就从cookies中载入
@@ -26,7 +26,7 @@ app.config.globalProperties.$userinfo = reactive({
 app.config.globalProperties.$ck = ck
 ck.refreshCookies(app.config.globalProperties)
 
-app.use(store).use(ElementPlus).use(router).mount('#app');
+app.use(store).use(VideoPlayer).use(ElementPlus).use(router).mount('#app');
 
 
 

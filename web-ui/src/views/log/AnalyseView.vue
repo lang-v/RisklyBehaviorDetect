@@ -1,5 +1,5 @@
 <template>
-  <div v-loading="loading.on" :element-loading-text="loading.msg">
+  <div v-loading="loading.on" :element-loading-text="loading.msg" element-loading-background="rgba(0, 0, 0, 0.8)">
     <div>
       <CountCard :items="cardInfo"/>
     </div>
