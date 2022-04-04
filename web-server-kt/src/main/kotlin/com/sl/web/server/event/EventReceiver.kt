@@ -16,7 +16,7 @@ class EventReceiver {
     /**
      * 其他动作都当作无危险行为
      */
-    private val levelTwo = arrayOf(6/*跳跃*/)
+    private val levelTwo = arrayOf(4,6/*跳跃*/)
     private val levelThree = arrayOf(51/*射击*/, 57/*扔东西*/, 63 /*打架*/)
 
     /**

@@ -16,4 +16,6 @@ class VideoSourceDto {
 
     var actionCodes: List<Int> = listOf()
 
+    var needEmail = false
+
 }

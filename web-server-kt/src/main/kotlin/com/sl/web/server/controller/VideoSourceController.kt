@@ -17,11 +17,13 @@ import kotlinx.coroutines.withContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.*
 import kotlin.collections.ArrayList
 
-@RestController("/projects")
+@RestController
+@RequestMapping("/projects")
 class VideoSourceController : BasicController() {
 
     @Autowired
@@ -151,15 +153,18 @@ class VideoSourceController : BasicController() {
             val time = Date(vsDto.notifyTime).time
             val maxLevel = getLevel(vsDto.actionCodes).maxOf { it }
 
-            when (maxLevel) {
-                2 -> {
-                    EmailSender.Builder()
-                        .init()
-                        .setReceiver(emailList.toTypedArray())
-                        .setTitle("检测到危险行为")
-                        .setContent(generateAlarmEmail("http://127.0.0.1:8080/index", Date(time).toDateTime()))
-                        .build()
-                        .send()
+            // 新增字段 needEmail 由客户端决定是否发送邮件，因为可能出现同一时间发送多次邮件
+            if (vsDto.needEmail) {
+                when (maxLevel) {
+                    2 -> {
+                        EmailSender.Builder()
+                            .init()
+                            .setReceiver(emailList.toTypedArray())
+                            .setTitle("检测到危险行为")
+                            .setContent(generateAlarmEmail(vsDto.url, Date(time).toDateTime()))
+                            .build()
+                            .send()
+                    }
                 }
             }
 
@@ -192,7 +197,7 @@ class VideoSourceController : BasicController() {
     /**
      * 其他动作都当作无危险行为
      */
-    private val levelTwo = arrayOf(6/*跳跃*/)
+    private val levelTwo = arrayOf(4/*摔倒*/,6/*跳跃*/)
     private val levelThree = arrayOf(51/*射击*/, 57/*扔东西*/, 63 /*打架*/)
 
     private fun getLevel(actionCodes: List<Int>): Array<Int> {
