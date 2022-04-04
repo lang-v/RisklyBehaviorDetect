@@ -28,7 +28,11 @@
 
 <script>
 export default {
-  name: "ProjectView"
+  name: "ProjectView",
+  created() {
+    this.$router.push('/project/list')
+  }
+
 }
 </script>
 

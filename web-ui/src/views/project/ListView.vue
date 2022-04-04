@@ -32,6 +32,7 @@ export default {
         msg: '加载中...'
       },
       info:{
+        resourceId:1,
         name:'项目1',
         type:'LOCALFILE',
         createTime:1649059712000,
@@ -50,7 +51,7 @@ export default {
       const json = JSON.stringify(data)
       const config = {
         method: 'post',
-        url: '/api/query_projects',
+        url: '/api/projects/query_projects',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -77,6 +78,7 @@ export default {
       // 拉到服务器数据后就在这里进行处理，便于后面的列表展示
       let arr = this.sourceList.map(((value) => {
         return {
+          resourceId:value.resourceId,
           name: value.name,
           type: value.type,
           createTime: value.createTime,

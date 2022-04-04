@@ -12,6 +12,9 @@ export default {
   components: {
     Header
   },
+  setup() {
+    // this.$router.push('home')
+  }
 }
 </script>
 

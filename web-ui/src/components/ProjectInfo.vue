@@ -29,8 +29,8 @@
 
       <el-col align="left" style="margin-top: 20px">
         <span class="ring"></span>
-        <span class="second-text">{{info.status}}</span>
-        <span class="second-text" style="float: right"> {{info.url}} </span>
+        <span class="second-text">{{ info.status }}</span>
+        <span class="second-text hidden-out"> {{ info.url }} </span>
       </el-col>
     </el-row>
   </div>
@@ -62,6 +62,16 @@ div.info-group:hover {
 span.second-text {
   font-size: smaller;
   color: darkgrey;
+  vertical-align: top;
+}
+
+span.hidden-out {
+  float: right;
+  white-space:nowrap;/*强制单行显示*/
+  text-overflow:ellipsis;/*超出部分省略号表示*/
+  overflow:hidden;/*超出部分隐藏*/
+  width: 60px;/*设置显示的最大宽度*/
+  display:inline-block;
 }
 
 span.ring {
@@ -70,6 +80,7 @@ span.ring {
   display: inline-block;
   border-radius: 50%;
   margin-right: 10px;
+  vertical-align: top;
   /*background-color: #42b983;*/
   background: #6FCE7F
 }

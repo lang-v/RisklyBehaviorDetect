@@ -72,7 +72,7 @@ export default {
           let json = JSON.stringify(data)
           const config = {
             method: 'post',
-            url: '/api/create',
+            url: '/api/projects/create',
             headers: {
               'Content-Type': 'application/json'
             },

@@ -2,6 +2,7 @@
   <div>
     <el-menu
         class="el-menu-demo"
+        default-active="/home"
         mode="horizontal"
         background-color="#545c64"
         text-color="#fff"
@@ -13,7 +14,7 @@
       <el-menu-item style="margin-left: 20px" index="/home">首页</el-menu-item>
       <el-menu-item index="/project">项目管理</el-menu-item>
       <el-menu-item index="/log">系统日志</el-menu-item>
-      <el-menu-item index="/account">账户管理</el-menu-item>
+      <el-menu-item align="right" index="/account">账户管理</el-menu-item>
       <div class="hp">
         <el-dropdown :trigger="this.$userinfo.hasLogin ? 'hover' : 'contextmenu'" >
           <el-avatar >{{ this.$userinfo.username }}</el-avatar>

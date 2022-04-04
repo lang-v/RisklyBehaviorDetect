@@ -4,6 +4,14 @@ module.exports = defineConfig({
   devServer:{
     // hotOnly:true,
     proxy:{
+      "/bpi":{
+        target:"http://localhost:8082",
+        ws:true,
+        changeOrigin: true,
+        pathRewrite:{
+          "^/bpi":""
+        }
+      },
       "/api":{
         target:"http://localhost:8080",
         ws:true,
@@ -12,14 +20,7 @@ module.exports = defineConfig({
           "^/api":""
         }
       },
-      "/api2":{
-        target:"http://localhost:8082",
-        ws:true,
-        changeOrigin: true,
-        pathRewrite:{
-          "^/api2":""
-        }
-      }
+
     }
   }
 })
