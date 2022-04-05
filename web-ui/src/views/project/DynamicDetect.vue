@@ -1,14 +1,17 @@
 <template>
-  <div v-loading="" :element-loading-text="loading.msg" element-loading-background="rgba(0,0,0,0.8)"
-       style="padding: 20px;width: 100%;">
+  <div v-loading="loading.on" :element-loading-text="loading.msg" style="padding: 20px;width: 100%;">
     <el-row>
-
+      <el-col>
+        <el-select style="float: left; margin-bottom: 20px" v-model="selected" placeholder="选择一个项目">
+          <el-option v-for="item in projects" :key="item.resourceId" :label="item.name" :value="item.url"/>
+        </el-select>
+      </el-col>
       <el-col style="width: 100%;">
         <div style="width:80%;height: auto;margin-top: 30px">
           <el-row style="margin-bottom: -3rem;width: 80%">
             <el-col style="height:1.5rem;padding-left: 10px;padding-right: 10px">
-              <span style="color: white;float: left;"> FPS:{{ currentProject.info.fps }}</span>
-              <span style="color: white;alignment: center">STATE:{{ currentProject.state }}</span>
+              <span style="color: white;float: left;"> FPS:{{ currentVideo.info.fps }}</span>
+              <span style="color: white;alignment: center">STATE:{{ currentVideo.state }}</span>
               <span style="color: white;float: right" id="datetime"/>
             </el-col>
           </el-row>
@@ -49,15 +52,17 @@
 <script>
 import axios from "axios";
 import {ElMessage} from "element-plus";
-import actions from "../../../data/actions.json"
+import actions from "../../data/actions.json"
+import {ref} from "vue";
 
 export default {
   name: "DynamicDetect",
   props: {
-    project: Object
   },
   data() {
     return {
+      resourceId:ref(-1),
+      projects:[],
       loading: {
         on: true,
         msg: '加载中...'
@@ -69,7 +74,7 @@ export default {
         width: 1,
         preds_intime: []
       },
-      currentProject: {
+      currentVideo: {
         info: {
           fps: 12,
         },
@@ -86,22 +91,74 @@ export default {
       alarmShow: false,
       colorTimer: undefined,
       detectActionCodes: [],
-      hadSendEmail: false
+      hadSendEmail: false,
+      selected:ref(),
+      selector:ref()
     }
   },
+  watch:{
+    selected:{
+      handler() {
+        this.loadVideoInfo()
+      }
+    },
+  },
   methods: {
-    loadProjectInfo() {
+    loadAllProject(){
+      let data = {
+        token: this.$userinfo.token
+      }
+      const json = JSON.stringify(data)
+      const config = {
+        method: 'post',
+        url: '/api/projects/query_projects',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data: json
+      }
+      axios(config)
+          .then((res) => {
+            this.loading.on = false
+            if (res.data.code === 200) {
+              this.projects = res.data.data.sort((a,b)=>{return a.createTime-b.createTime})
+              if (this.resourceId !== -1) {
+                // this.selector
+                this.projects.map(v=>{
+                  if (v.resourceId+"" === this.resourceId+"") {
+                    this.selected = v.url
+                  }
+                })
+              }
+            } else {
+              console.log(res.data)
+              ElMessage('加载失败')
+            }
+          })
+          .catch((err) => {
+            this.loading.on = false
+            console.log(err)
+            ElMessage('未知错误')
+          })
+
+    },
+    loadVideoInfo() {
       // 加载视频的信息，fps 宽高 源文件名 检测信息路径
       // path = path.replace("http://localhost:8082", "/api2")
+      if (this.selected === '') {
+        return
+      }
+      this.loading.on = true
       axios({
         method: 'get',
         url: "/bpi/detect",
         params: {
-          source: this.project.url
+          source: this.selected
         }
       }).then((res) => {
+        this.loading.on = false
         if (res.status === 200) {
-          this.currentProject = res.data
+          this.currentVideo = res.data
           this.getVideoUrl()
           this.loadDetectInfo()
         } else {
@@ -109,18 +166,19 @@ export default {
           console.log(res)
         }
       }).catch((err) => {
+        this.loading.on = false
         ElMessage('未知错误')
         console.log(err)
       })
     },
     getVideoUrl() {
-      this.videoRealUrl = "/bpi/video?source=" + this.currentProject.data.video_path;
+      this.videoRealUrl = "/bpi/video?source=" + this.currentVideo.data.video_path;
     },
     loadDetectInfo() {
       // path = path.replace("http://localhost:8082", "/api2")
       axios({
         method: 'get',
-        url: '/bpi/video?source=' + this.currentProject.data.video_preds,
+        url: '/bpi/video?source=' + this.currentVideo.data.video_preds,
       }).then((res) => {
         if (res.status === 200) {
           this.detectInfo = res.data
@@ -138,16 +196,12 @@ export default {
         console.log(err)
       })
     },
-    resolveDetectInfo(data) {
-      // 将获取的检测信息组装成时间段信息
-      // 废弃，感觉不需要转
-      console.log(data)
-    },
     report(ac) {
+      if (this.resourceId === -1)return
       const data = {
         token: this.$userinfo.token,
         notifyTime: (new Date()).getTime(),
-        resourceId: this.project.resourceId,
+        resourceId: this.resourceId,
         actionCodes: ac.map((item)=>{return item[0]}),
         needEmail: !this.hadSendEmail,
         url:window.location.href
@@ -283,10 +337,9 @@ export default {
       return level
     }
   },
-  setup() {
-  },
   created() {
-    this.loadProjectInfo()
+    this.resourceId = this.$route.query.resourceId
+    this.loadAllProject()
     console.log(this.videoRealUrl)
     setInterval("document.getElementById('datetime').innerHTML=new Date().toLocaleString();", 1000);
   }

@@ -1,7 +1,7 @@
 <template>
   <div class="login_box" id="login" v-loading="loading.on"
        element-loading-text="正在登录..."
-       element-loading-background="rgba(0, 0, 0, 0.8)">
+       >
     <el-form
         ref="ruleFormRef"
         :model="ruleForm"
@@ -117,7 +117,7 @@ export default {
               ck.saveCookies(res.data.data.username,res.data.data.token,true)
               ck.refreshCookies(globalProperties)
               console.log(res.data.message)
-              router.push('home')
+              router.push({path:'/'})
             } else {
               console.log(res)
               ElMessage(res.data.message)

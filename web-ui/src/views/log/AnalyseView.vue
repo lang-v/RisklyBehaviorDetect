@@ -1,9 +1,17 @@
 <template>
-  <div v-loading="loading.on" :element-loading-text="loading.msg" element-loading-background="rgba(0, 0, 0, 0.8)">
-    <div>
-      <CountCard :items="cardInfo"/>
-    </div>
+  <div v-loading="loading.on" :element-loading-text="loading.msg" >
+  <div v-if="cardInfo.length === 0">
+    <el-empty description="暂无数据"></el-empty>
   </div>
+  <div v-else>
+    <el-row :gutter="10" type="flex">
+      <el-col :span="3.5" v-for="item in cardInfo" :key="item">
+        <CountCard :item="item"/>
+      </el-col>
+    </el-row>
+  </div>
+
+</div>
 </template>
 
 <script>

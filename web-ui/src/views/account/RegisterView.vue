@@ -2,7 +2,7 @@
   <div class="sign_in_box" id="signup"
        v-loading="loading.on"
        :element-loading-text="loading.text"
-       element-loading-background="rgba(0, 0, 0, 0.8)">
+       >
     <el-form
         ref="ruleFormRef"
         :label-position="position"

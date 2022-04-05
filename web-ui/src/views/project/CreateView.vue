@@ -1,22 +1,22 @@
 <template>
-  <div v-loading="loading.on" :element-loading-text="loading.msg" element-loading-background="rgba(0, 0, 0, 0.8)" style="width: 100%;height: 100%">
+  <div v-loading="loading.on" :element-loading-text="loading.msg"  style="width: 100%;height: 100%">
     <div align="center">
       <el-form
-          ref="formRef"
-          align="center"
+          :ref="formRef"
           :model="form"
+          label-position="left"
           label-width="120px"
           style="width: 500px">
         <div style="margin-top: 30px;margin-bottom: 30px">
           <h3>新建项目</h3>
         </div>
-        <el-form-item required="true" prop="projectName" label="项目名称">
+        <el-form-item :required="true" prop="projectName" label="项目名称">
           <el-input v-model="form.projectName"/>
         </el-form-item>
-        <el-form-item required="true" prop="url" label="链接地址">
+        <el-form-item :required="true" prop="url" label="链接地址">
           <el-input v-model="form.url"/>
         </el-form-item>
-        <el-form-item required="true" prop="type" label="类型">
+        <el-form-item :required="true" prop="type" label="类型">
           <el-select placeholder="选择一项" v-model="form.type">
             <el-option label="本地文件" value="LocalFile"/>
             <el-option label="监控摄像头" value="Camera"/>
