@@ -1,6 +1,6 @@
 <template>
   <div class="info-group" style="width: 200px;">
-    <el-row gutter="20" align="left" @click="$router.push({name:'detect',query:{project:JSON.stringify(info)}})">
+    <el-row :gutter=20  @click="$router.push({name:'detect',query:{project:JSON.stringify(info)}})">
       <el-col align="left">
         <span style="font-size: larger">{{ info.name }}</span>
         <el-icon style="float: right">

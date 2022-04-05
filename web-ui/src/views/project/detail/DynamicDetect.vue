@@ -1,35 +1,48 @@
 <template>
   <div v-loading="" :element-loading-text="loading.msg" element-loading-background="rgba(0,0,0,0.8)"
        style="padding: 20px;width: 100%;">
-    <el-col style="width: 100%;">
-      <div style="width:80%;height: auto;margin-top: 30px">
-        <el-row style="margin-bottom: -3rem">
-          <el-col style="height:1.5rem;padding-left: 10px;padding-right: 10px">
-            <span style="color: white;float: left;"> FPS:{{ currentProject.info.fps }}</span>
-            <span style="color: white;alignment: center">STATE:{{ currentProject.state }}</span>
-            <span style="color: white;float: right" id="datetime"/>
-          </el-col>
-        </el-row>
-        <el-col>
-          <video id="detect-video" :src="videoRealUrl" controls
-                 style="max-width: 1280px;max-height: 720px;width: 100%;height: auto" muted loop/>
-        </el-col>
-      </div>
+    <el-row>
 
-
-      <div style="padding: 0px;alignment: center;width: 20%">
-        <!--          展示截图区域，若发生危险事件，将截图放到这-->
+      <el-col style="width: 100%;">
+        <div style="width:80%;height: auto;margin-top: 30px">
+          <el-row style="margin-bottom: -3rem;width: 80%">
+            <el-col style="height:1.5rem;padding-left: 10px;padding-right: 10px">
+              <span style="color: white;float: left;"> FPS:{{ currentProject.info.fps }}</span>
+              <span style="color: white;alignment: center">STATE:{{ currentProject.state }}</span>
+              <span style="color: white;float: right" id="datetime"/>
+            </el-col>
+          </el-row>
           <el-col>
+            <video id="detect-video" crossorigin="anonymous" :src="videoRealUrl" controls
+                   style="max-width: 1280px;max-height: 720px;min-width: 1280px;min-height:720px;width: 100%;height: auto"
+                   muted loop/>
+          </el-col>
+        </div>
+
+
+        <div style="float: right;height: 50%;width: 20%">
+          <!--          展示截图区域，若发生危险事件，将截图放到这-->
+          <div v-show="alarmShow">
+            <el-button @click="cancelAlert" type="primary">解除警报</el-button>
             <svg t="1649090056959" :color="alarmColor" fill="currentColor" class="icon" viewBox="0 0 1026 1024"
                  version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2205" width="200" height="200">
               <path
                   d="M1004.657 801.716 602.263 91.599c-49.213-86.817-129.646-86.817-178.866 0L21.004 801.716c-49.207 86.906-8.949 157.798 89.388 157.798l804.877 0C1013.606 959.514 1053.825 888.622 1004.657 801.716zM544.635 832.216l-63.649 0 0-63.649 63.649 0L544.635 832.216zM544.635 641.27l-63.649 0L480.986 259.377l63.649 0L544.635 641.27z"
                   p-id="2206"></path>
             </svg>
-          </el-col>
-      </div>
 
-    </el-col>
+            <img crossorigin="anonymous" alt="loading" style="width: 100%;height: 100%" id="detect-frame"/>
+
+            <span>疑似检测到危险行为请及时处理:<br/></span>
+            <span v-for="item in detectActionCodes" :key="item">
+              {{ actionsArr[item[0]] + ":" + item[1] + "%" }}<br/>
+            </span>
+          </div>
+        </div>
+
+      </el-col>
+    </el-row>
+
   </div>
 </template>
 
@@ -69,8 +82,11 @@ export default {
       videoRealUrl: '',
       preIndex: 0,
       actionsArr: JSON.parse(JSON.stringify(actions)),
-      alarmColor: 'rgba(0,0,0,233)',
-      colorTimer: undefined
+      alarmColor: 'rgba(0,0,0,0)',
+      alarmShow: false,
+      colorTimer: undefined,
+      detectActionCodes: [],
+      hadSendEmail: false
     }
   },
   methods: {
@@ -98,7 +114,7 @@ export default {
       })
     },
     getVideoUrl() {
-      this.videoRealUrl = "http://localhost:8082/video?source=" + this.currentProject.data.video_path;
+      this.videoRealUrl = "/bpi/video?source=" + this.currentProject.data.video_path;
     },
     loadDetectInfo() {
       // path = path.replace("http://localhost:8082", "/api2")
@@ -127,22 +143,62 @@ export default {
       // 废弃，感觉不需要转
       console.log(data)
     },
-    report(actionCodes) {
-      console.log('report riskily behavior', actionCodes)
-      // todo
+    report(ac) {
+      const data = {
+        token: this.$userinfo.token,
+        notifyTime: (new Date()).getTime(),
+        resourceId: this.project.resourceId,
+        actionCodes: ac.map((item)=>{return item[0]}),
+        needEmail: !this.hadSendEmail,
+        url:window.location.href
+      }
+      const json = JSON.stringify(data)
+      const config = {
+        method: 'post',
+        url: '/api/projects/report',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data: json
+      }
+      console.log(config)
+      axios(config)
+          .then((res) => {
+            if (res.data.code === 200) {
+              console.log('成功上报')
+              if (data.needEmail) {
+                this.hadSendEmail = true
+                setTimeout(() => {
+                  // 一个小时只发送一次邮件
+                  this.hadSendEmail = false
+                }, 60 * 1000 * 16)
+              }
+            } else {
+              console.log(res)
+              ElMessage(res.data.message)
+            }
+          })
+          .catch((err) => {
+            console.log(err)
+            ElMessage('上报失败，请及时练习管理员')
+          })
     },
-    alarm(level, ac) {
+    alarm(level, ac, lastNotifyTime) {
       // debugger
-      console.log('alarm', level, ac)
-      this.report(ac)
-      if (this.colorTimer !== undefined) clearTimeout(this.colorTimer)
+      if (this.colorTimer !== undefined) return
       switch (level) {
-        case 1: {
-          this.alarmColor = 'rgba(255,0,0)'
+        case 2: {
+          this.captureVideoFrame()
+          this.alarmShow = true
+          this.alarmColor = 'rgba(255,0,0,255)'
+          this.detectActionCodes = ac
           break
         }
-        case 2: {
+        case 1: {
+          this.captureVideoFrame()
+          this.alarmShow = true
           this.alarmColor = 'rgb(241,237,17)'
+          this.detectActionCodes = ac
           break
         }
         default: {
@@ -150,13 +206,27 @@ export default {
           break
         }
       }
-      if (level !== 0) {
-        // 3秒后消失
-        this.colorTimer = setTimeout(() => {
-          this.alarmColor = 'rgba(0,0,0,0)'
-        }, 3000 * level)
-      }
+      this.report(ac)
+      // 一段时间内警报是重复的，不需要多次提交
+      this.colorTimer = setTimeout(() => {}, lastNotifyTime)
       console.log('行为:', ac, 'behavior level:', level)
+    },
+    cancelAlert() {
+      // 解除警报
+      this.alarmShow = false
+      this.alarmColor = 'rgba(0,0,0,0)'
+      this.detectActionCodes = []
+    },
+    captureVideoFrame() {
+      const video = document.getElementById('detect-video')
+      video.setAttribute('crossorigin', 'anonymous')
+      let canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height)
+      const img = document.getElementById('detect-frame')
+      img.setAttribute('crossorigin', 'anonymous'); // 注意设置图片跨域应该在图片加载之前
+      img.src = canvas.toDataURL('image/jpeg', 1)
     },
     onProgress(event) {
       // 刚开始以为这个方法可以完美获取到视频的播放进度
@@ -167,8 +237,9 @@ export default {
       if (index === -1) return;
       let ac = this.detectInfo.preds_intime[index][1]
       let level = this.getBehaviorLevel(ac)
+      // 两秒进行一次异常检测
       if (level >= 1)
-        this.alarm(level, ac)
+        this.alarm(level, ac, 2)
     },
     findCurrentIndex(preIndex, time) {
       // let index = 0
@@ -198,13 +269,11 @@ export default {
     //     [2,67]
     // ]
     getBehaviorLevel(actionCodes) {
-      console.log('actionCodes', actionCodes)
       const levelTwo = [4/*摔倒*/, 6/*跳跃*/]
       const levelThree = [51/*射击*/, 57/*扔东西*/, 63 /*打架*/]
       let level = 0
       for (let i = 0; i < actionCodes.length; i++) {
         let item = actionCodes[i][0]
-        console.log('code:', item)
         if (levelTwo.includes(item)) {
           level = 1
         } else if (levelThree.includes(item)) {
