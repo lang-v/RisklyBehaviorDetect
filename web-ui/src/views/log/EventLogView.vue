@@ -27,7 +27,7 @@
     </el-menu-item>
   </el-menu>
 
-  <router-view style="float: right;width: 84%;height: 80%;padding: 20px"/>
+  <router-view style="float: right;width: 90%;height: 90%;padding: 20px"/>
   </div>
 
 </template>

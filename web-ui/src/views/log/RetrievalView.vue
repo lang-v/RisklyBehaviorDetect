@@ -44,7 +44,7 @@
         <el-table-column prop="type" label="类型"/>
         <el-table-column prop="resourceId" label="关联项目" width="100"/>
         <el-table-column prop="content" label="内容" width="450"/>
-        <el-table-column prop="createTime" label="触发时间"/>
+        <el-table-column prop="createTime" label="触发时间" :formatter="(r,c,value)=>{return (new Date(value)).toLocaleString()}"/>
       </el-table>
       <el-pagination style="margin-left: 45%;margin-top: 100px"
                      :page-size="10"
@@ -134,7 +134,7 @@ export default {
       axios(config).then((res) => {
         this.loading.on = false
         if (res.data.code === 200) {
-          this.data = res.data.data
+          this.data = res.data.data.sort((a,b)=>{return  a.createTime - b.createTime})
         } else {
           ElMessage(res.data.message)
         }
