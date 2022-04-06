@@ -15,7 +15,7 @@ class Record {
     @ManyToOne(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     @JoinColumn(name = "resource_id")
 //    @JoinColumn(name = "project1",foreignKey = ForeignKey(name = "test1"))
-    lateinit var source: Project
+    var source: Project?=null
 
 
     @Column(name = "time")

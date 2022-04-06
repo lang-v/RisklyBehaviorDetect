@@ -32,7 +32,7 @@ class Project {
     //    @Column(name = "user_id")
     @ManyToOne(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     @JoinColumn(name = "users_id")
-    lateinit var user: User
+    var user: User? = null
 
     //    @JsonIgnore
     //    @JoinTable(name = "project_members",joinColumns = [JoinColumn(name="resource_id")])

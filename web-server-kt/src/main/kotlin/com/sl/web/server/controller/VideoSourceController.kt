@@ -37,7 +37,11 @@ class VideoSourceController : BasicController() {
             if (!TokenManager.validationToken(vsDto.token, userService::checkId))
                 return@withContext "".wrapper(101, "token失效")
             val userId = TokenManager.decodeToken(vsDto.token)!!.first
-            val project = videoSourceService.insert(userId, vsDto.url, vsDto.projectName)?: return@withContext "".wrapper(203, "创建失败")
+            val project =
+                videoSourceService.insert(userId, vsDto.url, vsDto.projectName) ?: return@withContext "".wrapper(
+                    203,
+                    "创建失败"
+                )
             val user = userService.query(setOf(userId))[0]
             EventLogBuilder()
                 .setCreateTime(System.currentTimeMillis())
@@ -58,8 +62,25 @@ class VideoSourceController : BasicController() {
             if (!TokenManager.validationToken(dto.token, userService::checkId))
                 return@withContext "".wrapper(101, "token失效")
             val userId = TokenManager.decodeToken(dto.token)!!.first
+            // fixed 这里只能查到自己创建的项目，应该是拿到所有与自己相关的项目
             videoSourceService.queryByUserId(userId)
                 .wrapper(200, "查询成功")
+        }
+    }
+
+    @PostMapping("/query_project")
+    suspend fun queryProject(
+        @RequestBody(required = true) dto: VideoSourceDto
+    ): Wrapper<Any> {
+        return withContext(coroutineContext) {
+            if (!TokenManager.validationToken(dto.token, userService::checkId))
+                return@withContext "".wrapper(101, "token失效")
+            val userId = TokenManager.decodeToken(dto.token)!!.first
+            // fixed 这里只能查到自己创建的项目，应该是拿到所有与自己相关的项目
+            videoSourceService.query(userId, dto.resourceId)?.wrapper(200, "查询成功") ?: return@withContext "".wrapper(
+                201,
+                "资源访问错误"
+            )
         }
     }
 
@@ -123,7 +144,8 @@ class VideoSourceController : BasicController() {
             if (!TokenManager.validationToken(vsDto.token, userService::checkId))
                 return@withContext "".wrapper(101, "token失效")
             val userId = TokenManager.decodeToken(vsDto.token)!!.first
-            val videoSource = videoSourceService.query(userId,vsDto.resourceId) ?: return@withContext "".wrapper(302, "查询失败")
+            val videoSource =
+                videoSourceService.query(userId, vsDto.resourceId) ?: return@withContext "".wrapper(302, "查询失败")
             if (userId != videoSource.owner && !videoSource.members.map { it.user_id }.contains(userId))
                 return@withContext "".wrapper(303, "无权限访问资源")
             val records = videoSource.records
@@ -139,7 +161,7 @@ class VideoSourceController : BasicController() {
             val userId = checkTokenAndBackID(vsDto.token) {
                 return@withContext "".wrapper(101, "token失效")
             }
-            val videoSource = videoSourceService.query(userId,vsDto.resourceId)
+            val videoSource = videoSourceService.query(userId, vsDto.resourceId)
                 ?: return@withContext "".wrapper(201, "资源错误")
             val members = videoSource.members
             val userList = userService.query(members.map { it.user_id }.toSet().plus(userId))
@@ -197,7 +219,7 @@ class VideoSourceController : BasicController() {
     /**
      * 其他动作都当作无危险行为
      */
-    private val levelTwo = arrayOf(4/*摔倒*/,6/*跳跃*/)
+    private val levelTwo = arrayOf(4/*摔倒*/, 6/*跳跃*/)
     private val levelThree = arrayOf(51/*射击*/, 57/*扔东西*/, 63 /*打架*/)
 
     private fun getLevel(actionCodes: List<Int>): Array<Int> {

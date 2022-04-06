@@ -2,13 +2,17 @@ package com.sl.web.server.service.impl
 
 import com.sl.web.server.entity.Member
 import com.sl.web.server.entity.Project
+import com.sl.web.server.mapper.MemberMapper
 import com.sl.web.server.mapper.UserMapper
 import com.sl.web.server.mapper.VideoResourceMapper
 import com.sl.web.server.service.VideoSourceService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Example
+import org.springframework.data.domain.ExampleMatcher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.util.*
+import kotlin.collections.ArrayList
 
 @Service
 class VideoSourceServiceImpl : VideoSourceService {
@@ -19,6 +23,9 @@ class VideoSourceServiceImpl : VideoSourceService {
     @Autowired
     lateinit var userMapper: UserMapper
 
+    @Autowired
+    lateinit var memberMapper: MemberMapper
+
     override suspend fun insert(userId: String, source: String, projectName: String): Project? {
         val project = Project()
         project.name = projectName
@@ -28,6 +35,7 @@ class VideoSourceServiceImpl : VideoSourceService {
         project.type = if (source == "0") Project.Type.Camera else Project.Type.LocalFile
         project.url = source
         val user = userMapper.findByIdOrNull(userId) ?: return null
+        project.user = user
         user.projects = user.projects.plus(project)
         userMapper.saveAndFlush(user)
         return project
@@ -42,6 +50,7 @@ class VideoSourceServiceImpl : VideoSourceService {
         val memberWithId = userIds.map {
             Member().apply {
                 this.user_id = it
+                this.source = videoSource
 //                this.source = VideoSource().apply { this.resourceId = resourceId }
             }
         }.toSet()
@@ -75,8 +84,21 @@ class VideoSourceServiceImpl : VideoSourceService {
     }
 
     override suspend fun queryByUserId(userId: String): List<Project> {
-        val user = userMapper.findByIdOrNull(userId) ?: return listOf()
-        return user.projects.toList()
+        val list = ArrayList<Project>()
+        val p = Member().apply {
+            this.user_id = userId
+            this.source = null
+        }
+        val example = Example.of(p, ExampleMatcher.matchingAny().withIgnoreNullValues())
+        val temp = memberMapper.findAll(example)
+        list.addAll(sourceMapper.findAllById(temp.map { it.source?.resourceId }))
+        val user = userMapper.findByIdOrNull(userId) ?: return list
+        list.addAll(user.projects)
+        return list
+    }
+
+    override suspend fun queryByProjectId(resourceId: Int): Project? {
+        return sourceMapper.findByIdOrNull(resourceId)
     }
 
     override suspend fun update(source: Project): Int {

@@ -27,7 +27,7 @@ class EventLog {
     @JsonIgnore
     @ManyToOne(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     @JoinColumn(name = "users_id")
-    lateinit var user: User
+    var user: User?=null
 
     enum class Type {
         Login, Register, Reset, Update, ProjectCreate,

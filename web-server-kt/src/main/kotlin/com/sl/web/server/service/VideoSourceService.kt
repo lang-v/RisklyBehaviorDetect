@@ -14,5 +14,7 @@ interface VideoSourceService {
 
     suspend fun queryByUserId(userId:String):List<Project>
 
+    suspend fun queryByProjectId(resourceId: Int): Project?
+
     suspend fun update(source: Project):Int
 }
