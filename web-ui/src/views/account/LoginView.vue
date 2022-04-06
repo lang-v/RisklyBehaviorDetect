@@ -114,7 +114,7 @@ export default {
           axios(config).then(function (res) {
             if (res.data.code === 200) {
               ElMessage('登录成功')
-              ck.saveCookies(res.data.data.username,res.data.data.token,true)
+              ck.saveCookies(res.data.data.userId,res.data.data.username,res.data.data.token,true)
               ck.refreshCookies(globalProperties)
               console.log(res.data.message)
               router.push({path:'/'})

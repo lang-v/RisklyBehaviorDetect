@@ -18,6 +18,7 @@ app.config.globalProperties.$axios=axios;
 // const key = 'userinfo'
 // let userinfo = this.$cookies.get(key)
 app.config.globalProperties.$userinfo = reactive({
+    userid:'',
     username:'None',
     token:'',
     hasLogin:false

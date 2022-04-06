@@ -1,51 +1,64 @@
 <template>
-  <div v-loading="loading.on" :element-loading-text="loading.msg" style="padding: 20px;width: 100%;">
-    <el-row>
-      <el-col>
-        <el-select style="float: left; margin-bottom: 20px" v-model="selected" placeholder="选择一个项目">
-          <el-option v-for="item in projects" :key="item.resourceId" :label="item.name" :value="item.url"/>
-        </el-select>
-      </el-col>
-      <el-col style="width: 100%;">
-        <div style="width:80%;height: auto;margin-top: 30px">
-          <el-row style="margin-bottom: -3rem;width: 80%">
-            <el-col style="height:1.5rem;padding-left: 10px;padding-right: 10px">
-              <span style="color: white;float: left;"> FPS:{{ currentVideo.info.fps }}</span>
-              <span style="color: white;alignment: center">STATE:{{ currentVideo.state }}</span>
-              <span style="color: white;float: right" id="datetime"/>
-            </el-col>
-          </el-row>
+  <div v-loading="loading.on" :element-loading-text="loading.msg" style="padding: 20px;">
+    <el-container>
+      <el-header>
+        <el-row>
           <el-col>
-            <video id="detect-video" crossorigin="anonymous" :src="videoRealUrl" controls
-                   style="max-width: 1280px;max-height: 720px;min-width: 1280px;min-height:720px;width: 100%;height: auto"
-                   muted loop/>
+            <el-select style="float: left; margin-bottom: 20px" v-model="selected" placeholder="选择一个项目">
+              <el-option v-for="item in projects" :key="item.resourceId" :label="item.name" :value="item.url"/>
+            </el-select>
           </el-col>
-        </div>
+        </el-row>
+      </el-header>
+      <el-main>
+        <el-row :gutter="20">
+          <el-col :span="16">
+            <el-row style="margin-top: 20px" >
+              <el-row style="width: 100%;" justify="start" :gutter="20" align="middle">
+                <el-col :span="6">
+                  <span style="color: black;"> FPS:{{ currentVideo.info.fps }}</span>
+                </el-col>
+                <el-col :span="6">
+                  <span style="color: black;">STATE:{{ currentVideo.state }}</span>
+                </el-col>
+                <el-col :span="12">
+                  <span style="color: black;" id="datetime"/>
+                </el-col>
+              </el-row>
 
+              <el-col>
+                <video id="detect-video" crossorigin="anonymous" :src="videoRealUrl" controls
+                       style="width: 100%;height: auto;max-height: 600px;min-height: 600px"
+                       muted loop/>
+              </el-col>
+            </el-row>
+          </el-col>
 
-        <div style="float: right;height: 50%;width: 20%">
-          <!--          展示截图区域，若发生危险事件，将截图放到这-->
-          <div v-show="alarmShow">
-            <el-button @click="cancelAlert" type="primary">解除警报</el-button>
-            <svg t="1649090056959" :color="alarmColor" fill="currentColor" class="icon" viewBox="0 0 1026 1024"
-                 version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2205" width="200" height="200">
-              <path
-                  d="M1004.657 801.716 602.263 91.599c-49.213-86.817-129.646-86.817-178.866 0L21.004 801.716c-49.207 86.906-8.949 157.798 89.388 157.798l804.877 0C1013.606 959.514 1053.825 888.622 1004.657 801.716zM544.635 832.216l-63.649 0 0-63.649 63.649 0L544.635 832.216zM544.635 641.27l-63.649 0L480.986 259.377l63.649 0L544.635 641.27z"
-                  p-id="2206"></path>
-            </svg>
+          <el-col :span="8">
+            <div style="width: 100%;height: 100%">
+              <!--          展示截图区域，若发生危险事件，将截图放到这-->
+              <el-row align="middle" justify="center" :gutter="20" v-show="alarmShow">
+                <el-button @click="cancelAlert" type="primary">解除警报</el-button>
+                <svg t="1649090056959" :color="alarmColor" fill="currentColor" class="icon" viewBox="0 0 1026 1024"
+                     version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2205" width="200" height="200">
+                  <path
+                      d="M1004.657 801.716 602.263 91.599c-49.213-86.817-129.646-86.817-178.866 0L21.004 801.716c-49.207 86.906-8.949 157.798 89.388 157.798l804.877 0C1013.606 959.514 1053.825 888.622 1004.657 801.716zM544.635 832.216l-63.649 0 0-63.649 63.649 0L544.635 832.216zM544.635 641.27l-63.649 0L480.986 259.377l63.649 0L544.635 641.27z"
+                      p-id="2206"></path>
+                </svg>
 
-            <img crossorigin="anonymous" alt="loading" style="width: 100%;height: 100%" id="detect-frame"/>
+                <img crossorigin="anonymous" alt="loading" style="width: 100%;height: 100%" id="detect-frame"/>
 
-            <span>疑似检测到危险行为请及时处理:<br/></span>
-            <span v-for="item in detectActionCodes" :key="item">
+                <span>疑似检测到危险行为请及时处理:<br/></span>
+                <span v-for="item in detectActionCodes" :key="item">
               {{ actionsArr[item[0]] + ":" + item[1] + "%" }}<br/>
             </span>
-          </div>
-        </div>
+              </el-row>
+            </div>
 
-      </el-col>
-    </el-row>
-
+          </el-col>
+        </el-row>
+      </el-main>
+    </el-container>
   </div>
 </template>
 
@@ -57,12 +70,11 @@ import {ref} from "vue";
 
 export default {
   name: "DynamicDetect",
-  props: {
-  },
+  props: {},
   data() {
     return {
-      resourceId:ref(-1),
-      projects:[],
+      resourceId: ref(-1),
+      projects: [],
       loading: {
         on: true,
         msg: '加载中...'
@@ -92,19 +104,20 @@ export default {
       colorTimer: undefined,
       detectActionCodes: [],
       hadSendEmail: false,
-      selected:ref(),
-      selector:ref()
+      selected: ref(),
+      selector: ref()
     }
   },
-  watch:{
-    selected:{
-      handler() {
+  watch: {
+    selected: {
+      handler(nv) {
+        console.log('load Video',nv)
         this.loadVideoInfo()
       }
     },
   },
   methods: {
-    loadAllProject(){
+    loadAllProject() {
       let data = {
         token: this.$userinfo.token
       }
@@ -121,11 +134,13 @@ export default {
           .then((res) => {
             this.loading.on = false
             if (res.data.code === 200) {
-              this.projects = res.data.data.sort((a,b)=>{return a.createTime-b.createTime})
+              this.projects = res.data.data.sort((a, b) => {
+                return a.createTime - b.createTime
+              })
               if (this.resourceId !== -1) {
                 // this.selector
-                this.projects.map(v=>{
-                  if (v.resourceId+"" === this.resourceId+"") {
+                this.projects.map(v => {
+                  if (v.resourceId + "" === this.resourceId + "") {
                     this.selected = v.url
                   }
                 })
@@ -197,14 +212,16 @@ export default {
       })
     },
     report(ac) {
-      if (this.resourceId === -1)return
+      if (this.resourceId === -1) return
       const data = {
         token: this.$userinfo.token,
         notifyTime: (new Date()).getTime(),
         resourceId: this.resourceId,
-        actionCodes: ac.map((item)=>{return item[0]}),
+        actionCodes: ac.map((item) => {
+          return item[0]
+        }),
         needEmail: !this.hadSendEmail,
-        url:window.location.href
+        url: "http://localhost:8080/project/detect?resourceId="+this.resourceId
       }
       const json = JSON.stringify(data)
       const config = {
@@ -238,7 +255,6 @@ export default {
           })
     },
     alarm(level, ac, lastNotifyTime) {
-      // debugger
       if (this.colorTimer !== undefined) return
       switch (level) {
         case 2: {
@@ -262,7 +278,8 @@ export default {
       }
       this.report(ac)
       // 一段时间内警报是重复的，不需要多次提交
-      this.colorTimer = setTimeout(() => {}, lastNotifyTime)
+      this.colorTimer = setTimeout(() => {
+      }, lastNotifyTime)
       console.log('行为:', ac, 'behavior level:', level)
     },
     cancelAlert() {

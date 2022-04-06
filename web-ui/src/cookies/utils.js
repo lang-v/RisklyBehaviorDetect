@@ -21,6 +21,7 @@ const ck = {
     },
 
     refreshCookies(globalProperties) {
+        globalProperties.$userinfo.userid = ck.getCookie('userid')
         globalProperties.$userinfo.username = ck.getCookie('username')
         globalProperties.$userinfo.token = ck.getCookie('token')
         globalProperties.$userinfo.hasLogin = ck.getCookie('hasLogin')
@@ -28,7 +29,8 @@ const ck = {
         // globalProperties.$userinfo.token = this.getCookie('token');
     },
 
-    saveCookies(username, token, hasLogin) {
+    saveCookies(userid,username, token, hasLogin) {
+        this.setCookie('userid', userid, 10)
         this.setCookie('username', username, 10)
         this.setCookie('token', token, 10)
         this.setCookie('hasLogin', hasLogin, 10)
@@ -36,6 +38,7 @@ const ck = {
     },
 
     clearCookies() {
+        this.setCookie('userid', '', 999)
         this.setCookie('username', 'None', 999)
         this.setCookie('token', '', 999)
         this.setCookie('hasLogin', false, 999)

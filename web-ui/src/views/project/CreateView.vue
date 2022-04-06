@@ -2,7 +2,7 @@
   <div v-loading="loading.on" :element-loading-text="loading.msg"  style="width: 100%;height: 100%">
     <div align="center">
       <el-form
-          :ref="formRef"
+          ref="formRef"
           :model="form"
           label-position="left"
           label-width="120px"
@@ -22,7 +22,7 @@
             <el-option label="监控摄像头" value="Camera"/>
           </el-select>
         </el-form-item>
-        <div align="center" style="margin-top: 30px;margin-bottom: 30px">
+        <div  style="margin-top: 30px;margin-bottom: 30px">
           <el-button type="primary" @click="this.submitForm(formRef)">创建
           </el-button>
           <el-button @click="this.resetForm(formRef)">重置</el-button>
@@ -50,7 +50,8 @@ export default {
       loading: {
         on: false,
         msg: '上传中...'
-      }
+      },
+      // formRef: ref()
     }
   },
   setup(){
@@ -59,6 +60,7 @@ export default {
   },
   methods: {
     submitForm(formEl) {
+      console.log('asdnbub',formEl)
       if (!formEl)return
       formEl.validate((valid)=>{
         if (valid) {
