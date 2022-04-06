@@ -1,14 +1,42 @@
 <template>
-  <div v-loading="loading.on" :element-loading-text="loading.msg" >
-    <div v-if="projectInfoList.length === 0">
-      <el-empty description="暂无数据"></el-empty>
-    </div>
-    <div v-else>
-      <el-row :gutter="10" type="flex">
-        <el-col :span="3.5" v-for="item in projectInfoList" :key="item">
-          <ProjectInfo :info="item"/>
-        </el-col>
-      </el-row>
+  <div v-loading="loading.on" :element-loading-text="loading.msg">
+    <div style="width: 100%;overflow: hidden">
+      <div style="padding: 20px">
+        <el-row align="middle" justify="start">
+          <el-col :span="1">
+            <span>LocalFile：</span>
+          </el-col>
+        </el-row>
+        <el-divider/>
+        <div v-if="projectInfoListLocal.length === 0">
+          <el-empty description="暂无数据"></el-empty>
+        </div>
+        <el-row v-else :gutter="10" type="flex">
+          <el-col :span="4" v-for="item in projectInfoListLocal" :key="item">
+            <ProjectInfo :info="item"/>
+          </el-col>
+        </el-row>
+      </div>
+
+
+      <div style="margin-top: 50px;padding: 20px">
+        <el-row align="middle" justify="start">
+          <el-col :span="1">
+            <span>Camera：</span>
+          </el-col>
+        </el-row>
+        <el-divider/>
+        <div v-if="projectInfoListCamera.length === 0">
+          <el-empty description="暂无数据"></el-empty>
+        </div>
+        <el-row v-else :gutter="10" type="flex">
+          <el-col :span="4" v-for="item in projectInfoList" :key="item">
+            <ProjectInfo :info="item"/>
+          </el-col>
+        </el-row>
+      </div>
+
+
     </div>
 
   </div>
@@ -22,7 +50,7 @@ import {ElMessage} from "element-plus";
 
 export default {
   name: "ProjectList",
-  components:{
+  components: {
     ProjectInfo
   },
   data() {
@@ -31,19 +59,20 @@ export default {
         on: false,
         msg: '加载中...'
       },
-      info:{
-        resourceId:1,
-        name:'项目1',
-        type:'LOCALFILE',
-        createTime:1649059712000,
-        status:'Ready',
-        url:'movie.mp4'
+      info: {
+        resourceId: 1,
+        name: '项目1',
+        type: 'LOCALFILE',
+        createTime: 1649059712000,
+        status: 'Ready',
+        url: 'movie.mp4'
       },
-      sourceList:[],
-      projectInfoList:[]
+      sourceList: [],
+      projectInfoListLocal: [],
+      projectInfoListCamera: []
     }
   },
-  methods:{
+  methods: {
     loadProjects() {
       let data = {
         token: this.$userinfo.token
@@ -78,17 +107,23 @@ export default {
       // 拉到服务器数据后就在这里进行处理，便于后面的列表展示
       let arr = this.sourceList.map(((value) => {
         return {
-          resourceId:value.resourceId,
+          resourceId: value.resourceId,
           name: value.name,
           type: value.type,
           createTime: value.createTime,
           status: 'Ready',
           url: value.url
         }
-      })).sort((a,b)=>{
+      })).sort((a, b) => {
         return a.createTime - b.createTime
       })
-      this.projectInfoList = arr
+      arr.forEach((v)=>{
+        if (v.type === 'LocalFile') {
+          this.projectInfoListLocal.push(v)
+        }else{
+          this.projectInfoListCamera.push(v)
+        }
+      })
     },
     refresh() {
       this.loading.on = true
@@ -102,5 +137,4 @@ export default {
 </script>
 
 <style scoped>
-
 </style>

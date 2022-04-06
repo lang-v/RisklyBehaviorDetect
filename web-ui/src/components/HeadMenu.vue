@@ -1,6 +1,6 @@
 <template>
   <el-row style="height: 100%;width: 100%" align="middle" justify="end" :gutter='10'>
-    <el-col :span="30" :pull="5">
+    <el-col :span="16" :pull="5">
       <div style="color: white">
         <span style="font-family: 华文行楷,system-ui;font-size: xx-large">高空危险行为预警系统</span>
       </div>
@@ -16,10 +16,10 @@
         </el-row>
       </el-col>
 
-      <el-col v-show="this.$userinfo.hasLogin === 'true'" :span="1" :offset="1">
+      <el-col v-show="this.$userinfo.hasLogin === 'true'" :span="2" :offset="3">
         <div>
           <el-dropdown trigger="hover">
-            <el-avatar>{{ this.$userinfo.username }}</el-avatar>
+            <el-avatar>{{ this.$userinfo.username.substring(0,1).toUpperCase() }}</el-avatar>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item @click="logout">退出登录</el-dropdown-item>
