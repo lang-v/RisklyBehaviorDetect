@@ -55,17 +55,9 @@
               <el-menu-item index="/project/detect">
                 <span>实时检测</span>
               </el-menu-item>
-              <el-sub-menu index="/member">
-                <template #title>
-                  <span>成员管理</span>
-                </template>
-                <el-menu-item index="/project/member/add">
-                  <span>添加成员</span>
-                </el-menu-item>
-                <el-menu-item index="/project/member/remove">
-                  <span>移除成员</span>
-                </el-menu-item>
-              </el-sub-menu>
+              <el-menu-item index="/project/member">
+                <span>成员管理</span>
+              </el-menu-item>
             </el-sub-menu>
             <el-sub-menu index="/log">
               <template #title>

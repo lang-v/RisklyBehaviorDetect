@@ -27,6 +27,11 @@ const routes = [
         name: 'detect',
         component: () => import('../views/project/DynamicDetect')
     },
+    {
+        path: '/project/member',
+        name: 'member',
+        component: () => import('../views/project/MemberManager')
+    },
     // ]
     // },
     // {

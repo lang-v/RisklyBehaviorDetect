@@ -105,7 +105,6 @@ export default {
       detectActionCodes: [],
       hadSendEmail: false,
       selected: ref(),
-      selector: ref()
     }
   },
   watch: {
