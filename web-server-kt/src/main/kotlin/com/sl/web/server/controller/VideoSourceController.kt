@@ -87,7 +87,7 @@ class VideoSourceController : BasicController() {
     @PostMapping("/add_member")
     suspend fun addMembers(
         @RequestBody(required = true) vsDto: VideoSourceDto
-    ): Wrapper<String> {
+    ): Wrapper<Any?> {
         return withContext(coroutineContext) {
             if (!TokenManager.validationToken(vsDto.token, userService::checkId))
                 return@withContext "".wrapper(101, "token失效")
@@ -104,7 +104,7 @@ class VideoSourceController : BasicController() {
                     .setContent("project [${vsDto.resourceId}:${vsDto.projectName}] add members ${vsDto.members}")
                     .saveTo(user)
                 userService.update(user)
-                "".wrapper(200, "添加成功")
+                videoSourceService.queryByProjectId(vsDto.resourceId).wrapper(200, "添加成功")
             }
         }
     }
@@ -112,7 +112,7 @@ class VideoSourceController : BasicController() {
     @PostMapping("/remove_member")
     suspend fun removeMembers(
         @RequestBody(required = true) vsDto: VideoSourceDto
-    ): Wrapper<String> {
+    ): Wrapper<Any?> {
         return withContext(coroutineContext) {
             if (!TokenManager.validationToken(vsDto.token, userService::checkId))
                 return@withContext "".wrapper(101, "token失效")
@@ -129,7 +129,8 @@ class VideoSourceController : BasicController() {
                     .setContent("project [${vsDto.resourceId}:${vsDto.projectName}] remove members ${vsDto.members}")
                     .saveTo(user)
                 userService.update(user)
-                "".wrapper(200, "删除成功")
+                videoSourceService.queryByProjectId(vsDto.resourceId)
+                    .wrapper(200, "删除成功")
             }
 
         }
