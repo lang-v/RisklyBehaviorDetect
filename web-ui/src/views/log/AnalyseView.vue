@@ -1,5 +1,5 @@
 <template>
-  <div v-loading="loading.on" :element-loading-text="loading.msg" >
+  <div style="padding: 20px" v-loading="loading.on" :element-loading-text="loading.msg" >
   <div v-if="cardInfo.length === 0">
     <el-empty description="暂无数据"></el-empty>
   </div>

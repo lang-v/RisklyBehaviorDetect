@@ -1,5 +1,5 @@
 <template>
-  <div style="width: 100%;height: 100%" v-loading="loading.on" :element-loading-text="loading.msg" >
+  <div style="width: 100%;height: 100%;padding: 20px" v-loading="loading.on" :element-loading-text="loading.msg" >
     <div class="horizontal-div">
       <div>
         <span> 类型：</span>

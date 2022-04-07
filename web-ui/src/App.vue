@@ -4,7 +4,7 @@
       <el-header class="header">
         <Header style="width: 100%;"/>
       </el-header>
-      <el-container style="height: 100%">
+      <el-container >
         <el-aside style="height: 100%;width: 200px">
           <el-menu
               :default-active="$router.currentRoute.value.path"
@@ -99,7 +99,7 @@
             </el-sub-menu>
           </el-menu>
         </el-aside>
-        <el-main>
+        <el-main style="padding: 0;height: 100%;">
           <router-view/>
         </el-main>
       </el-container>
