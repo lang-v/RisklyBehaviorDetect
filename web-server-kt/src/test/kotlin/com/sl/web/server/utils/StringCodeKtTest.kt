@@ -15,7 +15,7 @@ internal class StringCodeKtTest {
 
         val t = Date(1648630821264)
         println(t)
-        assert((1648630821264L).isValid())
+        assert(!(1648630821264L).isValid())
     }
 
     @Test
