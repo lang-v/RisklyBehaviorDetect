@@ -24,6 +24,7 @@
             :props="{key:'userid',label:'userid'}"
             :button-texts="['添加成员','移除成员']"
             :titles="['已有成员名单','其他人员名单']"
+            @change="onChangeData"
         />
       </el-tab-pane>
     </el-tabs>
@@ -55,19 +56,7 @@ export default {
   watch:{
     selectedProjectIndex:{
       handler(nv) {
-        // debugger
-        this.members = this.projects[nv].members.map(v=>{
-          return {userid:v.user_id}
-        })
-        // 下面这一步就是用allUsers 减去 members
-        const arr = this.allUsers.filter(value => !this.members.includes(value))
-
-        // 此时arr 还是对象数组然而 transfer 只需要 key arr 即字符串数组
-        this.notMembers = arr.map(v=>v.userid)
-
-        // 得到非成员 key 列表
-        // this.notMembers = arr
-        console.log('not members',this.notMembers)
+        this.loadCurrentProjectInfo(nv,null)
       }
     }
   },
@@ -136,6 +125,81 @@ export default {
         ElMessage('未知错误')
         console.log(err)
       })
+    },
+    onChangeData(current,direction,changeKeyArr) {
+      // console.log(current,direction,changeKeyArr)
+      // 数据改变前先进行原有数据保存，如果请求提交失败，则恢复原有数据
+      const back = []
+      current.forEach(v=>{
+        back.push(v)
+      })
+      if (direction === 'left') {
+        // 向左移动数据为添加成员
+        changeKeyArr.forEach(v=>{
+          back.push(v)
+        })
+        this.submitMembersChangeRequest(back,'add_member',changeKeyArr)
+      }else if(direction === 'right') {
+        // 向右移动数据为移除成员
+        const temp = back.filter(v=>(!changeKeyArr.includes(v)))
+        this.submitMembersChangeRequest(temp,'remove_member',changeKeyArr)
+      }
+    },
+    submitMembersChangeRequest(dataBack,url_suffix,members){
+      const data = {
+        token:this.$userinfo.token,
+        resourceId:this.resourceId,
+        members:members
+      }
+      const json = JSON.stringify(data)
+      const config = {
+        method: 'post',
+        url: '/api/projects/'+url_suffix,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data: json
+      }
+      this.loading.on = true
+      this.$axios(config)
+      .then(res=>{
+        this.loading.on = false
+        if (res.data.code === 200) {
+          ElMessage('修改成功')
+          this.loadCurrentProjectInfo(this.selectedProjectIndex,res.data.data)
+        }else {
+          ElMessage('修改失败')
+          // 修改失败恢复原有数据
+          this.notMembers = dataBack
+        }
+      }).catch(err=>{
+        this.loading.on = false
+        console.error(err)
+        ElMessage('未知错误')
+        // 修改失败恢复原有数据
+        this.notMembers = dataBack
+      })
+    },
+    loadCurrentProjectInfo(index,data) {
+      if (data === null) {
+        console.error('从服务器获取的数据为空，是否出错了？',data)
+      }else{
+        this.projects[index] = data
+      }
+      this.resourceId = this.projects[index].resourceId
+      this.members = this.projects[index].members.map(v=>{
+        return {userid:v.user_id}
+      })
+      // 下面这一步就是用allUsers 减去 members
+      const arr = this.allUsers.filter(value => !this.members.map(v=>v.userid).includes(value.userid))
+
+      // 此时arr 还是对象数组然而 transfer 只需要 key arr 即字符串数组
+      this.notMembers = arr.map(v=>v.userid)
+
+      // 得到非成员 key 列表
+      // this.notMembers = arr
+      // console.log('not members',this.notMembers)
+
     }
   },
   created() {

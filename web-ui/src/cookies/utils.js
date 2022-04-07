@@ -16,7 +16,6 @@ const ck = {
                 ret = m[1] ? decodeURIComponent(m[1]) : ''
             }
         }
-        console.log(name,ret)
         return ret
     },
 
