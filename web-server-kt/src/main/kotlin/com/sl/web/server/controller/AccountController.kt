@@ -8,21 +8,15 @@ import com.sl.web.server.email.generateVerificationCodeEmail
 import com.sl.web.server.entity.EventLog
 import com.sl.web.server.entity.User
 import com.sl.web.server.entity.ValidationCode
-import com.sl.web.server.response.SimpleToken
 import com.sl.web.server.response.Wrapper
 import com.sl.web.server.response.wrapper
-import com.sl.web.server.response.wrapperWithToken
 import com.sl.web.server.security.TokenManager
-import com.sl.web.server.service.LogService
-import com.sl.web.server.service.UserService
 import com.sl.web.server.service.ValidationCodeService
 import com.sl.web.server.utils.EventLogBuilder
 import com.sl.web.server.utils.isValid
-import com.sl.web.server.utils.toDateTime
 import kotlinx.coroutines.withContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
-import java.text.SimpleDateFormat
 import java.util.*
 
 
@@ -246,14 +240,14 @@ class AccountController : BasicController() {
             if (!TokenManager.validationToken(dto.token, userService::checkId)) {
                 return@withContext "".wrapper(301, "token过期")
             }
-            val user_id =
+            val userId =
                 TokenManager.decodeToken(token = dto.token)?.first ?: return@withContext "".wrapper(301, "链接失效或者其他错误")
 
-            val count = userService.updateUsername(user_id, dto.new_username)
+            val count = userService.updateUsername(userId, dto.new_username)
             if (count == 0) {
                 return@withContext "".wrapper(201, "修改失败")
             }
-            val newUser = userService.query(setOf(dto.user_id))[0]
+            val newUser = userService.query(setOf(userId))[0]
             EventLogBuilder()
                 .setCreateTime(System.currentTimeMillis())
                 .setType(EventLog.Type.Update)
