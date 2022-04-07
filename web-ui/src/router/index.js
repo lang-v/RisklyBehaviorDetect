@@ -49,12 +49,18 @@ const routes = [
         // name:'analyse',
         component: () => import('../views/log/AnalyseView')
     },
+
     //   ]
     // },
     {
         path: '/account',
         name: 'account',
         component: () => import('../views/account/AccountView')
+    },
+    {
+        path: '/account/modify',
+        name: 'modify',
+        component: ()=> import('../views/account/UserInfoModify')
     },
     {
         path: '/register',

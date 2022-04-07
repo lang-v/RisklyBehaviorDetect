@@ -94,10 +94,7 @@
                 <span>账户管理</span>
               </template>
               <el-menu-item index="/account/modify">
-                <span>修改用户名</span>
-              </el-menu-item>
-              <el-menu-item index="/account/reset">
-                <span>修改密码</span>
+                <span>用户信息</span>
               </el-menu-item>
             </el-sub-menu>
           </el-menu>

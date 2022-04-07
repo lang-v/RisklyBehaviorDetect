@@ -37,6 +37,7 @@
       <el-table :data="data.slice((currentPage-1)*pageSize,currentPage*pageSize)" width="100%">
         <el-table-column
             label="序号"
+            :stripe="true"
             type="index"
             width="80"
             align="center"/>

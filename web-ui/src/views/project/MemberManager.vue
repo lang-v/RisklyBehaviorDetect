@@ -8,7 +8,7 @@
         </el-select>
       </el-col>
     </el-row>
-    <el-tabs type="border-card" style="height: 100%">
+    <el-tabs style="height: 100%">
       <el-tab-pane label="成员列表">
         <ol>
           <li v-for="(item,i) in members" :key="i">

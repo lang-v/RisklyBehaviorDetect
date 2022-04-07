@@ -20,6 +20,7 @@ app.config.globalProperties.$axios=axios;
 app.config.globalProperties.$userinfo = reactive({
     userid:'',
     username:'None',
+    email:'',
     token:'',
     hasLogin:false
 })
