@@ -11,7 +11,7 @@ import java.util.*
  */
 object TokenManager {
 
-    const val tokenKey = "RisklyBehaviorDetection"
+    const val tokenKey = "RiskyBehaviorDetection"
 
     fun checkFormat(userId: String, key: String, timeStamp: String? = null): Boolean {
         if (userId.isLegal() && key.isLegal()) {
