@@ -1,5 +1,5 @@
 <template>
-  <div v-loading="loading.on" :element-loading-text="loading.msg"  style="width: 100%;height: 100%">
+  <div v-loading="loading.on" :element-loading-text="loading.msg"  style="width: 100%;height: auto">
     <div align="center">
       <el-form
           ref="formRef"
@@ -60,7 +60,6 @@ export default {
   },
   methods: {
     submitForm(formEl) {
-      console.log('asdnbub',formEl)
       if (!formEl)return
       formEl.validate((valid)=>{
         if (valid) {
