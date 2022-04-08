@@ -27,7 +27,7 @@
               </el-row>
 
               <el-col>
-                <video id="detect-video" crossorigin="anonymous" :src="videoRealUrl" controls
+                <video id="detect-video" autoplay ref="videoRef" crossorigin="anonymous" :src="videoRealUrl" controls
                        style="width: 100%;height: auto;max-height: 600px;min-height: 600px"
                        muted loop/>
               </el-col>
@@ -35,9 +35,9 @@
           </el-col>
 
           <el-col :span="8">
-            <div style="width: 100%;height: 100%">
+            <div style="width: 100%;height: 100%" v-show="alarmShow">
               <!--          展示截图区域，若发生危险事件，将截图放到这-->
-              <el-row align="middle" justify="center" :gutter="20" v-show="alarmShow">
+              <el-row align="middle" justify="center" :gutter="20" >
                 <el-button @click="cancelAlert" type="primary">解除警报</el-button>
                 <svg t="1649090056959" :color="alarmColor" fill="currentColor" class="icon" viewBox="0 0 1026 1024"
                      version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2205" width="200" height="200">
@@ -97,6 +97,7 @@ export default {
         }
       },
       videoRealUrl: '',
+      videoRef: ref(),
       preIndex: 0,
       actionsArr: JSON.parse(JSON.stringify(actions)),
       alarmColor: 'rgba(0,0,0,0)',
@@ -110,6 +111,12 @@ export default {
   watch: {
     selected: {
       handler(nv) {
+        this.projects.forEach(project => {
+          if (project.url+"" === nv+"") {
+            this.resourceId = project.resourceId
+          }
+        })
+        console.log('resourceId',this.resourceId)
         console.log('load Video',nv)
         this.loadVideoInfo()
       }
@@ -211,6 +218,7 @@ export default {
       })
     },
     report(ac) {
+      // 上报每次都要上报，但是一个小时只能发送一次邮件
       if (this.resourceId === -1) return
       const data = {
         token: this.$userinfo.token,
@@ -250,7 +258,7 @@ export default {
           })
           .catch((err) => {
             console.log(err)
-            ElMessage('上报失败，请及时练习管理员')
+            ElMessage('上报失败，请及时联系管理员')
           })
     },
     alarm(level, ac, lastNotifyTime) {
@@ -298,12 +306,11 @@ export default {
       img.setAttribute('crossorigin', 'anonymous'); // 注意设置图片跨域应该在图片加载之前
       img.src = canvas.toDataURL('image/jpeg', 1)
     },
-    onProgress(event) {
+    onProgress() {
       // 刚开始以为这个方法可以完美获取到视频的播放进度
-      // debugger
       if (this.detectInfo.preds_intime.length === 0) return
       // 获取播放进度
-      let index = this.findCurrentIndex(this.preIndex, event.timeStamp / 1000)
+      let index = this.findCurrentIndex(this.preIndex, document.getElementById('detect-video').currentTime)
       if (index === -1) return;
       let ac = this.detectInfo.preds_intime[index][1]
       let level = this.getBehaviorLevel(ac)
