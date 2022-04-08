@@ -17,16 +17,16 @@ class WebServerKtApplicationTests {
 
     @Test
     fun testAes_StringWithEmpty(){
-        val emptyChar = Char.MIN_VALUE
-        val origin = "测试${emptyChar}validation"
-        val key = "hhhh"
-        val code = Aes.encrypt(origin.toUnicode(),key.toCharArray())
-        val decode = Aes.decrypt(code,key.toCharArray()).fromUnicode()
-
-        println(origin)
-        println(decode)
-
-        assert(origin != decode)
+//        val emptyChar = Char.MIN_VALUE
+//        val origin = "测试${emptyChar}validation"
+//        val key = "hhhh"
+//        val code = Aes.encrypt(origin.toUnicode(),key.toCharArray())
+//        val decode = Aes.decrypt(code,key.toCharArray()).fromUnicode()
+//
+//        println(origin)
+//        println(decode)
+//
+//        assert(origin != decode)
     }
 
     @Test

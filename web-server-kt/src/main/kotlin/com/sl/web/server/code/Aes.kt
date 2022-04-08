@@ -10,14 +10,15 @@ import com.sl.web.server.utils.toUnicode
  */
 object Aes {
 
-    const val publicKey = "RisklyBehaviorDetection"
+    private const val publicKey = "RiskyBehaviorDetection"
 
     init {
         try {
-            System.loadLibrary("libaes")
+            System.loadLibrary("aes")
         }catch (e:UnsatisfiedLinkError){
-            val path = this.javaClass.getResource("/native/").path
-            System.load("${path}libaes.dll")
+            e.printStackTrace()
+//            val path = this.javaClass.getResource("/native/").path
+//            System.load("${path}aes.dll")
         }
     }
 

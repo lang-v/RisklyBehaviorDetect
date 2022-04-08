@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 internal class EmailSenderTest{
     @Test
     fun testSendEmail(){
-        // 因为每次测试都会发送邮件就注释掉把
+        // 因为每次测试都会发送邮件就注释掉把:wq
 //        GlobalScope.launch {
 //            EmailSender.Builder()
 //                .init()
