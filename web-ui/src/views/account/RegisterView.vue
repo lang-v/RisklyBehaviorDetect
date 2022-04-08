@@ -268,7 +268,7 @@ export default {
               })
               .catch((err) => {
                 console.log(err)
-                that.loading.on = true
+                that.loading.on = false
                 ElMessage('未知错误')
               })
 
