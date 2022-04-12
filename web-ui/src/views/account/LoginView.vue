@@ -12,13 +12,13 @@
         label-width="80px"
     >
       <div>
-        <h3>登录</h3>
+        <h3 style="color: #ffffff;">登录</h3>
       </div>
 
-      <el-form-item label="UserID" prop="user_id">
+      <el-form-item label="UserID" prop="user_id" class="l-item">
         <el-input v-model="ruleForm.user_id" type="text" auto-complete="off"/>
       </el-form-item>
-      <el-form-item label="Password" prop="pass">
+      <el-form-item label="Password" prop="pass" class="l-item">
         <el-input v-model="ruleForm.pass" type="password" autocomplete="off"/>
       </el-form-item>
       <div style="margin-top: 30px;margin-bottom: 30px">
@@ -28,7 +28,7 @@
       </div>
       <div>
 
-        <router-link type="string" :underline="false" :to="{path:'/register'}">没有账号？点击注册</router-link>
+        <router-link type="string" :underline="false" style="color: #ffffff;" :to="{path:'/register'}">没有账号？点击注册</router-link>
       </div>
 
     </el-form>
@@ -153,7 +153,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 div.login_box {
   position: absolute;
   left: 50%;
@@ -161,12 +161,15 @@ div.login_box {
   transform: translate(-50%, -50%);
   /*display: table-cell; !**!*/
   text-align: center;
-  background: #42b983;
+  background: #545c64;
   width: 350px;
   height: 300px;
   padding: 20px 40px;
   border-radius: 5px;
   /*margin-left: 15px;*/
   box-shadow: darkgrey 10px 10px 15px 5px
+}
+.l-item .el-form-item__label {
+  color : #fff;
 }
 </style>

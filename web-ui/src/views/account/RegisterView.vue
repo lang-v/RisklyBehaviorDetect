@@ -14,25 +14,25 @@
     >
 
       <div>
-        <h3>注册</h3>
+        <h3 style="color: #ffffff;">注册</h3>
       </div>
 
-      <el-form-item label="UserID" prop="user_id">
+      <el-form-item label="UserID" prop="user_id" class="l-item">
         <el-input v-model="ruleForm.user_id" type="text" auto-complete="off"/>
       </el-form-item>
-      <el-form-item label="Username" prop="username">
+      <el-form-item label="Username" prop="username" class="l-item">
         <el-input v-model="ruleForm.username" type="text" auto-complete="off"/>
       </el-form-item>
-      <el-form-item label="Password" prop="pass">
+      <el-form-item label="Password" prop="pass" class="l-item">
         <el-input v-model="ruleForm.pass" type="password" autocomplete="off"/>
       </el-form-item>
-      <el-form-item label="Password again" prop="checkPass">
+      <el-form-item label="Password again" prop="checkPass" class="l-item">
         <el-input v-model="ruleForm.checkPass" type="password" autocomplete="off"/>
       </el-form-item>
-      <el-form-item label="Email" prop="email">
+      <el-form-item label="Email" prop="email" class="l-item">
         <el-input v-model="ruleForm.email" type="text" auto-complete="on"/>
       </el-form-item>
-      <el-form-item label="Verification" prop="code">
+      <el-form-item label="Verification" prop="code" class="l-item">
         <el-input v-model="ruleForm.code" type="text" style="width: 60%;" auto-complete="off"/>
         <el-button style="color: white;background-color: #3c8dbc;width: 40%;margin: 0" v-show="showTime"
                    @click="sendEmail(ruleForm.email)">发送验证码
@@ -48,7 +48,7 @@
       </div>
       <div>
 
-        <router-link type="string" :underline="false" :to="{path:'/login'}">已有账号，点击登录</router-link>
+        <router-link type="string" :underline="false" style="color: #ffffff;" :to="{path:'/login'}">已有账号，点击登录</router-link>
       </div>
     </el-form>
   </div>
@@ -288,7 +288,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 div.sign_in_box {
   position: absolute;
   left: 50%;
@@ -296,12 +296,15 @@ div.sign_in_box {
   transform: translate(-50%, -50%);
   display: table-cell; /**/
   text-align: center;
-  background: #42b983;
+  background: #545c64;
   /*width: 30%;*/
   /*height: 500px;*/
   padding: 20px 40px;
   border-radius: 5px;
   /*margin-left: 15px;*/
   box-shadow: darkgrey 10px 10px 15px 5px
+}
+.l-item .el-form-item__label {
+  color : #fff;
 }
 </style>

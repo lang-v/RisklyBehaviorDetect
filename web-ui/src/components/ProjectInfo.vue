@@ -81,7 +81,7 @@ span.ring {
   border-radius: 50%;
   margin-right: 10px;
   vertical-align: top;
-  /*background-color: #42b983;*/
+  /*background-color: #545c64;*/
   background: #6FCE7F
 }
 

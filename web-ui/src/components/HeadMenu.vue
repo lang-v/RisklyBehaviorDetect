@@ -5,7 +5,7 @@
         <span style="font-family: 华文行楷,system-ui;font-size: xx-large">高空危险行为预警系统</span>
       </div>
     </el-col>
-      <el-col v-show="this.$userinfo.hasLogin === 'false'" :span="3">
+      <el-col v-show="this.$userinfo.hasLogin === 'false' && this.$router.currentRoute.value.path !== '/'" :span="3">
         <el-row align="middle" justify="center" :gutter="20">
           <el-col :span="1">
             <el-button type="primary" @click="toLogin">登录</el-button>
