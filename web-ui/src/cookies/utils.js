@@ -8,23 +8,29 @@ const ck = {
         var expires = "expires=" + d.toGMTString();
         document.cookie = name + "=" + value + "; " + expires;
     },
-    getCookie(name) {
+    getCookie(name, defaultValue='') {
         let ret, m;
         if (typeof name === 'string' && name !== '') {
             if ((m = String(document.cookie).match(
                 new RegExp('(?:^| )' + name + '(?:(?:=([^;]*))|;|$)')))) {
-                ret = m[1] ? decodeURIComponent(m[1]) : ''
+                ret = m[1] ? decodeURIComponent(m[1]) : defaultValue
             }
         }
+        ret = ret || defaultValue
         return ret
     },
 
     refreshCookies(globalProperties) {
         globalProperties.$userinfo.userid = ck.getCookie('userid')
-        globalProperties.$userinfo.username = ck.getCookie('username')
+        globalProperties.$userinfo.username = ck.getCookie('username','None')
         globalProperties.$userinfo.email = ck.getCookie('email')
         globalProperties.$userinfo.token = ck.getCookie('token')
-        globalProperties.$userinfo.hasLogin = ck.getCookie('hasLogin')
+        // if (globalProperties.$userinfo.token) {
+        //     globalProperties.$userinfo.hasLogin = 'true'
+        // } else {
+        //     globalProperties.$userinfo.hasLogin = 'false'
+        // }
+        globalProperties.$userinfo.hasLogin = ck.getCookie('hasLogin','true')
         // globalProperties.$userinfo.username = this.getCookie('username');
         // globalProperties.$userinfo.token = this.getCookie('token');
     },
