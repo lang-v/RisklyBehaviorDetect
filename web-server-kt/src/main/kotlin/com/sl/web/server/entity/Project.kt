@@ -1,16 +1,15 @@
 package com.sl.web.server.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import org.hibernate.mapping.Join
 import javax.persistence.*
 
-@Entity(name = "projects")
+@Entity(name = "project")
 class Project {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", columnDefinition = "Int", nullable = false)
-    var resourceId = 0
+    var resource_id = 0
 
     @Column(name = "input_url")
     var url = ""
@@ -23,7 +22,7 @@ class Project {
     var type = Type.LocalFile
 
     @Column(name = "create_time")
-    var createTime = 0L
+    var create_time = 0L
 
     @Column(name = "owner")
     var owner = ""
@@ -32,7 +31,7 @@ class Project {
     //    @Column(name = "user_id")
     @ManyToOne(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     @JoinColumn(name = "users_id")
-    var user: User? = null
+    var user: user_info? = null
 
     //    @JsonIgnore
     //    @JoinTable(name = "project_members",joinColumns = [JoinColumn(name="resource_id")])

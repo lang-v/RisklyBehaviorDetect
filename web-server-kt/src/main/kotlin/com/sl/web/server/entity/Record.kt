@@ -18,8 +18,8 @@ class Record {
     var source: Project?=null
 
 
-    @Column(name = "time")
-    var time = 0L
+    @Column(name = "create_time")
+    var create_time = 0L
 
     @Column(name = "action_code")
     var action_code = 0

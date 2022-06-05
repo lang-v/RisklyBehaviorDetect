@@ -6,11 +6,11 @@ import javax.persistence.*
 
 @Entity
 @Table(name="user_info")
-class User{
+class user_info{
 
     @Id
     @Column(name = "user_id",updatable = false,nullable = false)
-    var userId: String = ""
+    var user_id: String = ""
 
     @Column(name = "email",nullable = false)
     var email = ""
@@ -30,6 +30,10 @@ class User{
     lateinit var projects:Set<Project>
 
     @JsonIgnore
-    @OneToMany(targetEntity = EventLog::class, cascade = [CascadeType.ALL],fetch = FetchType.EAGER)
-    lateinit var events:Set<EventLog>
+    @OneToMany(targetEntity = event_log::class, cascade = [CascadeType.ALL],fetch = FetchType.EAGER)
+    lateinit var events:Set<event_log>
+
+    @JsonIgnore
+    @OneToOne(targetEntity = ValidationCode::class,cascade = [CascadeType.ALL],fetch = FetchType.EAGER)
+    lateinit var validationCode: ValidationCode
 }

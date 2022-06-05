@@ -1,14 +1,9 @@
 package com.sl.web.server.controller
 
-import com.sl.web.server.dto.EventLogDto
+import com.sl.web.server.entity.event_log
 import com.sl.web.server.response.wrapper
-import com.sl.web.server.entity.EventLog.Type
 import com.sl.web.server.response.Wrapper
-import com.sl.web.server.security.TokenManager
-import com.sl.web.server.service.LogService
-import com.sl.web.server.service.UserService
 import kotlinx.coroutines.withContext
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -33,6 +28,16 @@ class LogController : BasicController() {
         }
     }
 
+    class EventLogDto {
+        var token = ""
+        var type :Set<event_log.Type> = setOf()
+
+        /**
+         * 初步估计这个查询比较耗时
+         * json { "start":0L, "end":1L }
+         */
+        var timeRange:LongRange? = null
+    }
     @PostMapping("/filter")
     suspend fun queryByFilter(
         @RequestBody(required = true) dto: EventLogDto

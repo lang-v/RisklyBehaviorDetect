@@ -1,27 +1,27 @@
 package com.sl.web.server.utils
 
-import com.sl.web.server.entity.EventLog
-import com.sl.web.server.entity.User
+import com.sl.web.server.entity.event_log
+import com.sl.web.server.entity.user_info
 
 class EventLogBuilder {
-    private val eventLog = EventLog()
+    private val eventLog = event_log()
 
     init {
-        eventLog.resourceId = -1
+        eventLog.resource_id = -1
     }
 
     fun setResourceId(id:Int) :EventLogBuilder{
-        eventLog.resourceId = id
+        eventLog.resource_id = id
         return this
     }
 
-    fun setType(type:EventLog.Type):EventLogBuilder{
+    fun setType(type:event_log.Type):EventLogBuilder{
         eventLog.type = type
         return this
     }
 
     fun setCreateTime(time:Long):EventLogBuilder{
-        eventLog.createTime = time
+        eventLog.create_time = time
         return this
     }
 
@@ -30,11 +30,11 @@ class EventLogBuilder {
         return this
     }
 
-    fun get():EventLog{
+    fun get():event_log{
         return eventLog
     }
 
-    fun saveTo(user: User):User {
+    fun saveTo(user: user_info):user_info {
         eventLog.user = user
         user.events = user.events.plus(eventLog)
         return user

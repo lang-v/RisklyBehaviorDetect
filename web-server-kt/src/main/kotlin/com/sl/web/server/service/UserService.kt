@@ -1,23 +1,23 @@
 package com.sl.web.server.service
 
-import com.sl.web.server.entity.User
+import com.sl.web.server.entity.user_info
 
 
 interface UserService {
 
-    suspend fun query(userId: Set<String>):List<User>
+    suspend fun query(userId: Set<String>):List<user_info>
 
-    suspend fun queryAll():List<User>
+    suspend fun queryAll():List<user_info>
 
-    suspend fun login(userId: String, password: String, timestamp: Long): User?
+    suspend fun login(userId: String, password: String, timestamp: Long): user_info?
 
-    suspend fun register(user: User): Int
+    suspend fun register(user: user_info): Int
 
     suspend fun updateUsername(userId: String, newUsername: String): Int
 
     suspend fun update(userId: String, newPassword: String): Int
 
-    suspend fun update(user: User):Boolean
+    suspend fun update(user: user_info):Boolean
 
     suspend fun update(userId: String, password:String, newPassword: String): Int
 

@@ -1,11 +1,7 @@
 package com.sl.web.server.service.impl
 
 import com.sl.web.server.entity.ValidationCode
-import com.sl.web.server.service.ValidationCodeService
-import com.sl.web.server.utils.toDateTime
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
 
 internal class ValidationCodeServiceImplTest {
@@ -27,10 +23,10 @@ internal class ValidationCodeServiceImplTest {
 //        val validationCodeService = ValidationCodeServiceImpl()
         val bean = ValidationCode()
         bean.email = "ws2240@qq.com"
-        bean.userId = "frontman"
-        bean.lastApplyTime = Date().time
+        bean.user_id = "frontman"
+        bean.last_apply_time = Date().time
 
-        val newDate = Date(bean.lastApplyTime).time
+        val newDate = Date(bean.last_apply_time).time
 //        bean.code = validationCodeService.generateCode()
 
 //        validationCodeService.saveOrUpdate(bean)

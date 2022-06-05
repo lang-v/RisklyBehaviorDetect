@@ -30,7 +30,7 @@ class VideoSourceServiceImpl : VideoSourceService {
         val project = Project()
         project.name = projectName
         project.owner = userId
-        project.createTime = Date().time
+        project.create_time = Date().time
         project.members = setOf()
         project.type = if (source == "0") Project.Type.Camera else Project.Type.LocalFile
         project.url = source
@@ -77,7 +77,7 @@ class VideoSourceServiceImpl : VideoSourceService {
     override suspend fun query(userId: String, resourceId: Int): Project? {
         val user = userMapper.findByIdOrNull(userId) ?: return null
         user.projects.forEach {
-            if (it.resourceId == resourceId)
+            if (it.resource_id == resourceId)
                 return it
         }
         return null
@@ -91,7 +91,7 @@ class VideoSourceServiceImpl : VideoSourceService {
         }
         val example = Example.of(p, ExampleMatcher.matchingAny().withIgnoreNullValues())
         val temp = memberMapper.findAll(example)
-        list.addAll(sourceMapper.findAllById(temp.map { it.source?.resourceId }))
+        list.addAll(sourceMapper.findAllById(temp.map { it.source?.resource_id }))
         val user = userMapper.findByIdOrNull(userId) ?: return list
         list.addAll(user.projects)
         return list

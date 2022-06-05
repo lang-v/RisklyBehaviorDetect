@@ -5,8 +5,8 @@ import com.sl.web.server.dto.AccountDto
 import com.sl.web.server.email.EmailSender
 import com.sl.web.server.email.generateResetLinkEmail
 import com.sl.web.server.email.generateVerificationCodeEmail
-import com.sl.web.server.entity.EventLog
-import com.sl.web.server.entity.User
+import com.sl.web.server.entity.event_log
+import com.sl.web.server.entity.user_info
 import com.sl.web.server.entity.ValidationCode
 import com.sl.web.server.response.Wrapper
 import com.sl.web.server.response.wrapper
@@ -41,12 +41,12 @@ class AccountController : BasicController() {
             var bean = validationCodeService.query(user_id)
             if (bean == null) {
                 bean = ValidationCode()
-                bean.userId = user_id
+                bean.user_id = user_id
                 bean.email = email
-                bean.lastApplyTime = Date(10000L).time
+                bean.last_apply_time = Date(10000L).time
             }
 
-            val time = bean.lastApplyTime
+            val time = bean.last_apply_time
             // 限制每个邮箱 60s 发一次验证码
             if ((System.currentTimeMillis() - time) < 60 * 1000) return@withContext "".wrapper(101, "请求太频繁，请稍后再试！")
             when (operation) {
@@ -83,10 +83,10 @@ class AccountController : BasicController() {
                     }
                     // 注册
                     val code = validationCodeService.generateCode()
-                    bean.userId = user_id
+                    bean.user_id = user_id
                     bean.code = code
                     // 五分钟内有效
-                    bean.lastApplyTime = System.currentTimeMillis() + 60 * 5 * 1000
+                    bean.last_apply_time = System.currentTimeMillis() + 60 * 5 * 1000
                     validationCodeService.saveOrUpdate(bean)
                     EmailSender.Builder()
                         .init()
@@ -117,9 +117,11 @@ class AccountController : BasicController() {
                 return@withContext "".wrapper(201, "验证失败")
             }
             val user_id =
-                TokenManager.decodeToken(accountDto.token)?.first ?: return@withContext "".wrapper(202, "验证失败")
+                TokenManager.decodeToken(accountDto.token)?.first
+                    ?: return@withContext "".wrapper(202, "验证失败")
             val userList =
-                userService.queryAll().filter { it.userId != user_id }.map { it.userId to it.username }.toList()
+                userService.queryAll().filter { it.user_id != user_id }
+                    .map { it.user_id to it.username }.toList()
             return@withContext userList.wrapper(200, "查询成功")
         }
     }
@@ -155,19 +157,13 @@ class AccountController : BasicController() {
     @PostMapping("/login")
     suspend fun login(
         @RequestBody(required = true) dto: AccountDto
-    ): Wrapper<User> {
+    ): Wrapper<user_info> {
         return withContext(coroutineContext) {
-//            val bean = validationCodeService.query(dto.user_id) ?: return@withContext "".wrapperWithToken(100, "验证码有误")
-//            if (bean.code !=dto.validation_code) return@withContext "".wrapperWithToken(101, "验证码错误")
-//            else
-//                if (!bean.lastApplyTime.isValid())
-//                    return@withContext "".wrapperWithToken(102, "验证码失效")
             val user = userService.login(dto.user_id, dto.password, dto.timestamp)
-                ?: return@withContext User().wrapper(201, "登录失败")
-//            val user = userService.query(setOf(userId))[0]
+                ?: return@withContext user_info().wrapper(201, "登录失败")
             EventLogBuilder()
                 .setCreateTime(System.currentTimeMillis())
-                .setType(EventLog.Type.Login)
+                .setType(event_log.Type.Login)
                 .setContent("user ${user.username} : login")
                 .saveTo(user)
             userService.update(user)
@@ -180,15 +176,16 @@ class AccountController : BasicController() {
         @RequestBody(required = true) dto: AccountDto
     ): Wrapper<String> {
         return withContext(coroutineContext) {
-            val code = validationCodeService.query(dto.user_id) ?: return@withContext "".wrapper(100, "验证码有误")
+            val code = validationCodeService.query(dto.user_id) ?:
+            return@withContext "".wrapper(100, "验证码有误")
             if (code.code != dto.validation_code)
                 return@withContext "".wrapper(101, "验证码错误")
             else
-                if (!code.lastApplyTime.isValid())
+                if (!code.last_apply_time.isValid())
                     return@withContext "".wrapper(102, "验证码失效")
 
-            val user = User().apply {
-                this.userId = dto.user_id
+            val user = user_info().apply {
+                this.user_id = dto.user_id
                 this.email = dto.email
                 this.username = dto.username
                 this.password = Aes.encrypt(dto.password)
@@ -200,7 +197,7 @@ class AccountController : BasicController() {
             val newUser = userService.query(setOf(dto.user_id))[0]
             EventLogBuilder()
                 .setCreateTime(System.currentTimeMillis())
-                .setType(EventLog.Type.Register)
+                .setType(event_log.Type.Register)
                 .setContent("user ${newUser.username} : register")
                 .saveTo(newUser)
             userService.update(newUser)
@@ -224,7 +221,7 @@ class AccountController : BasicController() {
             val newUser = userService.query(setOf(dto.user_id))[0]
             EventLogBuilder()
                 .setCreateTime(System.currentTimeMillis())
-                .setType(EventLog.Type.Update)
+                .setType(event_log.Type.Update)
                 .setContent("user ${newUser.username} : update password [\"${dto.password}\" -> \"${dto.new_password}\"]")
                 .saveTo(newUser)
             userService.update(newUser)
@@ -250,7 +247,7 @@ class AccountController : BasicController() {
             val newUser = userService.query(setOf(userId))[0]
             EventLogBuilder()
                 .setCreateTime(System.currentTimeMillis())
-                .setType(EventLog.Type.Update)
+                .setType(event_log.Type.Update)
                 .setContent("user ${newUser.username} : update username [\"${dto.username}\" -> \"${dto.new_username}\"]")
                 .saveTo(newUser)
             userService.update(newUser)
@@ -276,7 +273,7 @@ class AccountController : BasicController() {
             val newUser = userService.query(setOf(info.first))[0]
             EventLogBuilder()
                 .setCreateTime(System.currentTimeMillis())
-                .setType(EventLog.Type.Reset)
+                .setType(event_log.Type.Reset)
                 .setContent("user ${newUser.username} : reset ")
                 .saveTo(newUser)
             userService.update(newUser)

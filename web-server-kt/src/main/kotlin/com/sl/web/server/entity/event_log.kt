@@ -5,21 +5,21 @@ import javax.persistence.*
 
 @Entity
 @Table(name = "log_info")
-class EventLog {
+class event_log {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "log_id", nullable = false)
-    var logId = 0
+    var log_id = 0
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
     var type: Type = Type.All
 
     @Column(name = "create_time")
-    var createTime = 0L
+    var create_time = 0L
 
     @Column(name = "resource_id")
-    var resourceId = -1
+    var resource_id = -1
 
     @Column(name = "content")
     var content: String = ""
@@ -27,7 +27,7 @@ class EventLog {
     @JsonIgnore
     @ManyToOne(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     @JoinColumn(name = "users_id")
-    var user: User?=null
+    var user: user_info?=null
 
     enum class Type {
         Login, Register, Reset, Update, ProjectCreate,

@@ -1,7 +1,6 @@
 package com.sl.web.server.mapper
 
-import com.sl.web.server.entity.User
+import com.sl.web.server.entity.user_info
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.repository.CrudRepository
 
-interface UserMapper : JpaRepository<User, String> {}
+interface UserMapper : JpaRepository<user_info, String> {}

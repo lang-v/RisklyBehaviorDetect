@@ -15,7 +15,7 @@ import javax.mail.internet.MimeMessage
 class EmailSender {
 
     //发件人信息
-    private val From = "1844977240@qq.com"
+    private val from = "1844977240@qq.com"
 
     //发件人邮箱
     private val recipient = "1844977240@qq.com"
@@ -85,7 +85,7 @@ class EmailSender {
         transport ?: return false
 
         //连接服务器
-        transport.connect(host, From, password)
+        transport.connect(host, from, password)
 
         try {
             //发送邮件

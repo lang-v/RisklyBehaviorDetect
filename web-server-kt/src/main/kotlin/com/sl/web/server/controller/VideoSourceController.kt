@@ -3,13 +3,11 @@ package com.sl.web.server.controller
 import com.sl.web.server.dto.VideoSourceDto
 import com.sl.web.server.email.EmailSender
 import com.sl.web.server.email.generateAlarmEmail
-import com.sl.web.server.entity.EventLog
+import com.sl.web.server.entity.event_log
 import com.sl.web.server.entity.Record
 import com.sl.web.server.response.Wrapper
 import com.sl.web.server.response.wrapper
 import com.sl.web.server.security.TokenManager
-import com.sl.web.server.service.LogService
-import com.sl.web.server.service.UserService
 import com.sl.web.server.service.VideoSourceService
 import com.sl.web.server.utils.EventLogBuilder
 import com.sl.web.server.utils.toDateTime
@@ -38,16 +36,17 @@ class VideoSourceController : BasicController() {
                 return@withContext "".wrapper(101, "token失效")
             val userId = TokenManager.decodeToken(vsDto.token)!!.first
             val project =
-                videoSourceService.insert(userId, vsDto.url, vsDto.projectName) ?: return@withContext "".wrapper(
+                videoSourceService.insert(userId, vsDto.url, vsDto.projectName) ?:
+                return@withContext "".wrapper(
                     203,
                     "创建失败"
                 )
             val user = userService.query(setOf(userId))[0]
             EventLogBuilder()
                 .setCreateTime(System.currentTimeMillis())
-                .setType(EventLog.Type.ProjectCreate)
-                .setResourceId(project.resourceId)
-                .setContent("project [${project.resourceId}:${project.name}] create")
+                .setType(event_log.Type.ProjectCreate)
+                .setResourceId(project.resource_id)
+                .setContent("project [${project.resource_id}:${project.name}] create")
                 .saveTo(user)
             userService.update(user)
             "".wrapper(200, "创建成功")
@@ -99,7 +98,7 @@ class VideoSourceController : BasicController() {
                 val user = userService.query(setOf(userId))[0]
                 EventLogBuilder()
                     .setCreateTime(System.currentTimeMillis())
-                    .setType(EventLog.Type.ProjectAddMember)
+                    .setType(event_log.Type.ProjectAddMember)
                     .setResourceId(vsDto.resourceId)
                     .setContent("project [${vsDto.resourceId}:${vsDto.projectName}] add members ${vsDto.members}")
                     .saveTo(user)
@@ -124,7 +123,7 @@ class VideoSourceController : BasicController() {
                 val user = userService.query(setOf(userId))[0]
                 EventLogBuilder()
                     .setCreateTime(System.currentTimeMillis())
-                    .setType(EventLog.Type.ProjectRemoveMember)
+                    .setType(event_log.Type.ProjectRemoveMember)
                     .setResourceId(vsDto.resourceId)
                     .setContent("project [${vsDto.resourceId}:${vsDto.projectName}] remove members ${vsDto.members}")
                     .saveTo(user)
@@ -159,52 +158,36 @@ class VideoSourceController : BasicController() {
         @RequestBody(required = true) vsDto: VideoSourceDto
     ): Wrapper<String> {
         return withContext(coroutineContext) {
-            val userId = checkTokenAndBackID(vsDto.token) {
-                return@withContext "".wrapper(101, "token失效")
-            }
+            val userId = checkTokenAndBackID(vsDto.token) { return@withContext "".wrapper(101, "token失效") }
             val videoSource = videoSourceService.query(userId, vsDto.resourceId)
                 ?: return@withContext "".wrapper(201, "资源错误")
             val members = videoSource.members
             val userList = userService.query(members.map { it.user_id }.toSet().plus(userId))
-
-
             val emailList = ArrayList<String>()
-            // fixed 这里应该填邮箱地址
-//            emailList.add(videoSource.owner)
             emailList.addAll(userList.map { it.email })
-
             val time = Date(vsDto.notifyTime).time
             val maxLevel = getLevel(vsDto.actionCodes).maxOf { it }
-
-            // 新增字段 needEmail 由客户端决定是否发送邮件，因为可能出现同一时间发送多次邮件
             if (vsDto.needEmail) {
                 when (maxLevel) {
                     2 -> {
-                        EmailSender.Builder()
-                            .init()
-                            .setReceiver(emailList.toTypedArray())
-                            .setTitle("检测到危险行为")
+                        EmailSender.Builder().init()
+                            .setReceiver(emailList.toTypedArray()).setTitle("检测到危险行为")
                             .setContent(generateAlarmEmail(vsDto.url, Date(time).toDateTime()))
-                            .build()
-                            .send()
+                            .build().send()
                     }
                 }
             }
-
-            // 写入项目记录
             val record = Record()
             record.action_code = maxLevel
-            record.time = vsDto.notifyTime
+            record.create_time = vsDto.notifyTime
             videoSource.records = videoSource.records.plus(record)
             val count = videoSourceService.update(videoSource)
             if (count != 1)
                 return@withContext "".wrapper(201, "记录失败")
-
-            // 写入日志
             val user = userService.query(setOf(userId))[0]
             EventLogBuilder()
-                .setResourceId(videoSource.resourceId)
-                .setType(EventLog.Type.Alarm)
+                .setResourceId(videoSource.resource_id)
+                .setType(event_log.Type.Alarm)
                 .setContent("project [${vsDto.resourceId}:${videoSource.name}] - action codes:${vsDto.actionCodes} - level top:$maxLevel")
                 .setCreateTime(time)
                 .saveTo(user)

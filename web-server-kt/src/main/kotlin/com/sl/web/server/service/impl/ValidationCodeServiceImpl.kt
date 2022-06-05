@@ -3,7 +3,6 @@ package com.sl.web.server.service.impl
 import com.sl.web.server.entity.ValidationCode
 import com.sl.web.server.mapper.ValidationCodeMapper
 import com.sl.web.server.service.ValidationCodeService
-import com.sl.web.server.utils.toDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
@@ -19,7 +18,7 @@ class ValidationCodeServiceImpl:ValidationCodeService {
 
     override fun query(userId: String): ValidationCode? {
         val bean = ValidationCode()
-        bean.userId = userId
+        bean.user_id = userId
         val example = Example.of(bean, ExampleMatcher.matchingAny())
         return validationCodeMapper.findOne(example).let {
             if (it.isPresent) it.get() else null
