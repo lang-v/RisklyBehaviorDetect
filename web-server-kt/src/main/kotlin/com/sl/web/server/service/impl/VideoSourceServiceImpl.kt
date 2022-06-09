@@ -2,6 +2,7 @@ package com.sl.web.server.service.impl
 
 import com.sl.web.server.entity.Member
 import com.sl.web.server.entity.Project
+import com.sl.web.server.entity.user_info
 import com.sl.web.server.mapper.MemberMapper
 import com.sl.web.server.mapper.UserMapper
 import com.sl.web.server.mapper.VideoResourceMapper
@@ -103,6 +104,17 @@ class VideoSourceServiceImpl : VideoSourceService {
 
     override suspend fun update(source: Project): Int {
         sourceMapper.saveAndFlush(source)
+        return 1
+    }
+
+    override suspend fun delete(userId: String,source: Project): Int {
+        val user = userMapper.findById(userId).let {
+            if (!it.isPresent)
+                return 0
+            it.get()
+        }
+        user.projects = user.projects.filter { it.resource_id!=source.resource_id }.toSet()
+        userMapper.saveAndFlush(user)
         return 1
     }
 

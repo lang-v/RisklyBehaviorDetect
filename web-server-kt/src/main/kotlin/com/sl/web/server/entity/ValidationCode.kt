@@ -11,8 +11,7 @@ class ValidationCode {
     var record_id = 0
 
     @Column(name = "user_id")
-    @OneToOne
-    var user_id: user_info? = null
+    var user_id = ""
 //    var userId = ""
 
     @Column(name = "email")
