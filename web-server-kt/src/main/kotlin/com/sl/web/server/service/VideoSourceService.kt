@@ -1,6 +1,7 @@
 package com.sl.web.server.service
 
 import com.sl.web.server.entity.Project
+import com.sl.web.server.entity.User
 
 interface VideoSourceService {
 
@@ -17,4 +18,6 @@ interface VideoSourceService {
     suspend fun queryByProjectId(resourceId: Int): Project?
 
     suspend fun update(source: Project):Int
+
+    suspend fun delete(userId: String, source: Project):Int
 }

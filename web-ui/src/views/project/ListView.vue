@@ -13,7 +13,7 @@
         </div>
         <el-row v-else :gutter="10" type="flex">
           <el-col :span="4" v-for="item in myProjects" :key="item">
-            <ProjectInfo :info="item"/>
+            <ProjectInfo :info="item" :delete="this.delete"/>
           </el-col>
         </el-row>
       </div>
@@ -65,6 +65,23 @@ export default {
     }
   },
   methods: {
+    delete(info){
+      this.myProjects.splice(info,1)
+      let data = {
+        token: this.$userinfo.token,
+        resourceId: info.resourceId
+      }
+      const json = JSON.stringify(data)
+      const config = {
+        method: 'post',
+        url: '/api/projects/delete',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data: json
+      }
+      axios(config)
+    },
     loadProjects() {
       let data = {
         token: this.$userinfo.token

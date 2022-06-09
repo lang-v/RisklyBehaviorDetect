@@ -54,6 +54,22 @@ class VideoSourceController : BasicController() {
         }
     }
 
+    @PostMapping("/delete")
+    suspend fun deleteProject(
+        @RequestBody(required = true) dto: VideoSourceDto
+    ):Wrapper<Any>{
+        return withContext(coroutineContext){
+            if (!TokenManager.validationToken(dto.token, userService::checkId))
+                return@withContext "".wrapper(101, "token失效")
+            val userId = TokenManager.decodeToken(dto.token)!!.first
+            val list = videoSourceService.queryByUserId(userId)
+            val project = list.find { it.resourceId == dto.resourceId }
+                ?: return@withContext "".wrapper(201, "删除失败")
+            videoSourceService.delete(userId,project)
+            "".wrapper(200,"删除成功")
+        }
+    }
+
     @PostMapping("/query_projects")
     suspend fun queryProjects(
         @RequestBody(required = true) dto: VideoSourceDto
